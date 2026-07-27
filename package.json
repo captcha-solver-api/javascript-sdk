@@ -1,0 +1,49 @@
+{
+  "name": "captcha-sdk",
+  "version": "1.0.0",
+  "description": "Official JavaScript SDK for the Captcha Solver API. Solve reCAPTCHA v2, reCAPTCHA v3, Cloudflare Turnstile, GeeTest, and image captchas.",
+  "main": "src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./tasks": "./src/tasks.js",
+    "./exceptions": "./src/exceptions.js"
+  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:unit": "node --experimental-vm-modules node_modules/.bin/jest --testPathIgnorePatterns=integration",
+    "test:integration": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=integration"
+  },
+  "keywords": [
+    "captcha-solver",
+    "captcha-solving",
+    "recaptcha-v2",
+    "recaptcha-v3",
+    "cloudflare-turnstile",
+    "geetest",
+    "image-to-text",
+    "captcha-recognition",
+    "captcha-bypass",
+    "captcha-api"
+  ],
+  "author": "Captcha Solver",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "dotenv": "^16.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/captcha-solver-api/captcha-sdk-js"
+  },
+  "bugs": {
+    "url": "https://github.com/captcha-solver-api/captcha-sdk-js/issues"
+  },
+  "homepage": "https://github.com/captcha-solver-api/captcha-sdk-js#readme"
+}
