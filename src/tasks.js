@@ -1,3 +1,5 @@
+import { ValidationError } from './exceptions.js';
+
 export class BaseTask {
   constructor(params) {
     this._params = params;
@@ -14,76 +16,95 @@ export class BaseTask {
   }
 }
 
-export class ProxyMixin {
-  setProxy(proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null) {
-    this._params.proxyType = proxyType;
-    this._params.proxyAddress = proxyAddress;
-    this._params.proxyPort = proxyPort;
-    if (proxyLogin !== null) {
-      this._params.proxyLogin = proxyLogin;
-    }
-    if (proxyPassword !== null) {
-      this._params.proxyPassword = proxyPassword;
-    }
-  }
-}
-
 export class RecaptchaV2Proxyless extends BaseTask {
-  constructor({ websiteURL, websiteKey, isInvisible = null, dataSValue = null, cookies = null, userAgent = null }) {
-    super({ type: 'RecaptchaV2TaskProxyless', websiteURL, websiteKey, isInvisible, dataSValue, cookies, userAgent });
+  constructor({ websiteURL, websiteKey, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }) {
+    super({ type: 'RecaptchaV2TaskProxyless', websiteURL, websiteKey, isInvisible, recaptchaDataSValue, apiDomain, cookies, userAgent });
   }
 }
 
 export class RecaptchaV2 extends BaseTask {
-  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, dataSValue = null, cookies = null, userAgent = null }) {
-    super({ type: 'RecaptchaV2Task', websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, isInvisible, dataSValue, cookies, userAgent });
+  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }) {
+    super({ type: 'RecaptchaV2Task', websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, isInvisible, recaptchaDataSValue, apiDomain, cookies, userAgent });
   }
 }
 
 export class RecaptchaV2EnterpriseProxyless extends BaseTask {
-  constructor({ websiteURL, websiteKey, enterprisePayload = null, isInvisible = null, dataSValue = null, cookies = null, userAgent = null }) {
-    super({ type: 'RecaptchaV2EnterpriseTaskProxyless', websiteURL, websiteKey, enterprisePayload, isInvisible, dataSValue, cookies, userAgent });
+  constructor({ websiteURL, websiteKey, enterprisePayload = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }) {
+    super({ type: 'RecaptchaV2EnterpriseTaskProxyless', websiteURL, websiteKey, enterprisePayload, isInvisible, apiDomain, cookies, userAgent });
   }
 }
 
 export class RecaptchaV2Enterprise extends BaseTask {
-  constructor({ websiteURL, websiteKey, enterprisePayload = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, dataSValue = null, cookies = null, userAgent = null }) {
-    super({ type: 'RecaptchaV2EnterpriseTask', websiteURL, websiteKey, enterprisePayload, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, isInvisible, dataSValue, cookies, userAgent });
+  constructor({ websiteURL, websiteKey, enterprisePayload = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }) {
+    super({ type: 'RecaptchaV2EnterpriseTask', websiteURL, websiteKey, enterprisePayload, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, isInvisible, apiDomain, cookies, userAgent });
   }
 }
 
 export class RecaptchaV3Proxyless extends BaseTask {
-  constructor({ websiteURL, websiteKey, minScore = null, pageAction = null, isEnterprise = null, cookies = null, userAgent = null }) {
-    super({ type: 'RecaptchaV3TaskProxyless', websiteURL, websiteKey, minScore, pageAction, isEnterprise, cookies, userAgent });
+  constructor({ websiteURL, websiteKey, minScore, pageAction = null, isEnterprise = null, apiDomain = null }) {
+    if (minScore === undefined || minScore === null) {
+      throw new ValidationError('minScore is required');
+    }
+    super({ type: 'RecaptchaV3TaskProxyless', websiteURL, websiteKey, minScore, pageAction, isEnterprise, apiDomain });
   }
 }
 
 export class TurnstileProxyless extends BaseTask {
-  constructor({ websiteURL, websiteKey, action = null, cData = null, userAgent = null }) {
-    super({ type: 'TurnstileTaskProxyless', websiteURL, websiteKey, action, cData, userAgent });
+  constructor({ websiteURL, websiteKey, action = null, data = null, pageData = null, userAgent = null }) {
+    super({ type: 'TurnstileTaskProxyless', websiteURL, websiteKey, action, data, pageData, userAgent });
   }
 }
 
 export class Turnstile extends BaseTask {
-  constructor({ websiteURL, websiteKey, action = null, cData = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null }) {
-    super({ type: 'TurnstileTask', websiteURL, websiteKey, action, cData, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent });
+  constructor({ websiteURL, websiteKey, action = null, data = null, pageData = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null }) {
+    super({ type: 'TurnstileTask', websiteURL, websiteKey, action, data, pageData, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent });
   }
 }
 
 export class GeeTestProxyless extends BaseTask {
-  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, userAgent = null, cookies = null }) {
-    super({ type: 'GeeTestTaskProxyless', websiteURL, gt, challenge, version, initParameters, userAgent, cookies });
+  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, userAgent = null, cookies = null }) {
+    super({ type: 'GeeTestTaskProxyless', websiteURL, gt, challenge, version, initParameters, geetestApiServerSubdomain, userAgent, cookies });
   }
 }
 
 export class GeeTest extends BaseTask {
-  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, cookies = null }) {
-    super({ type: 'GeeTestTask', websiteURL, gt, challenge, version, initParameters, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent, cookies });
+  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, cookies = null }) {
+    super({ type: 'GeeTestTask', websiteURL, gt, challenge, version, initParameters, geetestApiServerSubdomain, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent, cookies });
   }
 }
 
 export class ImageToText extends BaseTask {
-  constructor({ body, numeric = null, minLength = null, maxLength = null, case_ = null, math = null }) {
-    super({ type: 'ImageToTextTask', body, numeric, minLength, maxLength, case: case_, math });
+  constructor({ body, phrase = null, case_ = null, numeric = null, math = null, minLength = null, maxLength = null, comment = null, imgInstructions = null }) {
+    super({ type: 'ImageToTextTask', body, phrase, case: case_, numeric, math, minLength, maxLength, comment, imgInstructions });
+  }
+}
+
+export class YandexSmartCaptchaTaskProxyless extends BaseTask {
+  constructor({ websiteURL, websiteKey, userAgent = null, cookies = null }) {
+    super({ type: 'YandexSmartCaptchaTaskProxyless', websiteURL, websiteKey, userAgent, cookies });
+  }
+}
+
+export class YandexSmartCaptchaTask extends BaseTask {
+  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, cookies = null }) {
+    super({ type: 'YandexSmartCaptchaTask', websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent, cookies });
+  }
+}
+
+export class CoordinatesTask extends BaseTask {
+  constructor({ body, comment = null, imgInstructions = null, minClicks = null, maxClicks = null, imgType = null }) {
+    super({ type: 'CoordinatesTask', body, comment, imgInstructions, minClicks, maxClicks, imgType });
+  }
+}
+
+export class TencentTaskProxyless extends BaseTask {
+  constructor({ websiteURL, appId, captchaScript = null }) {
+    super({ type: 'TencentTaskProxyless', websiteURL, appId, captchaScript });
+  }
+}
+
+export class TencentTask extends BaseTask {
+  constructor({ websiteURL, appId, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, captchaScript = null }) {
+    super({ type: 'TencentTask', websiteURL, appId, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, captchaScript });
   }
 }

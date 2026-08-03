@@ -1,0 +1,21 @@
+/**
+ * Async solve() test for RecaptchaV3Proxyless.
+ * Task serialization is covered once in tests/sync/recaptcha_v3.test.js.
+ */
+
+import { jest } from '@jest/globals';
+import { CaptchaClient } from '../../src/client.js';
+import * as Tasks from '../../src/tasks.js';
+
+test('solve', async () => {
+  const client = new CaptchaClient({ clientKey: 'test_key', pollingInterval: 10 });
+  const task = new Tasks.RecaptchaV3Proxyless({ websiteURL: 'https://example.com', websiteKey: 'test_key', minScore: 0.3 });
+
+  jest.spyOn(client, '_request')
+    .mockResolvedValueOnce({ errorId: 0, taskId: 102 })
+    .mockResolvedValueOnce({ errorId: 0, status: 'ready', solution: { gRecaptchaResponse: 'v3_token' } });
+
+  const result = await client.solve(task);
+
+  expect(result).toEqual({ gRecaptchaResponse: 'v3_token' });
+});

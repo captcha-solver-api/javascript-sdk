@@ -28,3 +28,10 @@ export class TimeoutError extends CaptchaError {
     this.name = 'TimeoutError';
   }
 }
+
+export class ValidationError extends CaptchaError {
+  constructor(message) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}

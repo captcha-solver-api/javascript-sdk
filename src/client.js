@@ -1,4 +1,4 @@
-import { ApiError, NetworkError, TimeoutError } from './exceptions.js';
+import { ApiError, NetworkError, TimeoutError, ValidationError } from './exceptions.js';
 
 export class CaptchaClient {
   constructor({
@@ -7,6 +7,10 @@ export class CaptchaClient {
     timeout = 120000,
     pollingInterval = 2000
   }) {
+    if (!clientKey) {
+      throw new ValidationError('clientKey is required');
+    }
+
     this.clientKey = clientKey;
     this.baseUrl = baseUrl;
     this.timeout = timeout;
@@ -35,7 +39,7 @@ export class CaptchaClient {
 
       if (data.errorId !== 0) {
         throw new ApiError(
-          data.errorId || data.errorCode || -1,
+          data.errorCode || 'UNKNOWN_ERROR',
           data.errorDescription || data.error || 'Unknown API error'
         );
       }
@@ -100,13 +104,6 @@ export class CaptchaClient {
 
       if (result.status === 'ready') {
         return result.solution;
-      }
-
-      if (result.status === 'error') {
-        throw new ApiError(
-          result.errorId || -1,
-          result.errorDescription || 'Task processing error'
-        );
       }
 
       await new Promise(resolve => setTimeout(resolve, this.pollingInterval));

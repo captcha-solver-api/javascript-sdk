@@ -1,7 +1,7 @@
 {
   "name": "captcha-sdk",
-  "version": "1.0.0",
-  "description": "Official JavaScript SDK for the Captcha Solver API. Solve reCAPTCHA v2, reCAPTCHA v3, Cloudflare Turnstile, GeeTest, and image captchas.",
+  "version": "1.1.0",
+  "description": "Official JavaScript SDK for the Captcha Solver API. Solve reCAPTCHA v2/v3, Cloudflare Turnstile, GeeTest, Yandex SmartCaptcha, Tencent, and image/click captchas.",
   "main": "src/index.js",
   "type": "module",
   "exports": {
@@ -13,9 +13,9 @@
     "src/"
   ],
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test:unit": "node --experimental-vm-modules node_modules/.bin/jest --testPathIgnorePatterns=integration",
-    "test:integration": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=integration"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathIgnorePatterns=integration",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=integration"
   },
   "keywords": [
     "captcha-solver",
@@ -24,6 +24,8 @@
     "recaptcha-v3",
     "cloudflare-turnstile",
     "geetest",
+    "yandex-smartcaptcha",
+    "tencent-captcha",
     "image-to-text",
     "captcha-recognition",
     "captcha-bypass",
@@ -40,10 +42,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/captcha-solver-api/captcha-sdk-js"
+    "url": "https://github.com/captcha-solver-api/javascript-sdk"
   },
   "bugs": {
-    "url": "https://github.com/captcha-solver-api/captcha-sdk-js/issues"
+    "url": "https://github.com/captcha-solver-api/javascript-sdk/issues"
   },
-  "homepage": "https://github.com/captcha-solver-api/captcha-sdk-js#readme"
+  "homepage": "https://github.com/captcha-solver-api/javascript-sdk#readme"
 }
