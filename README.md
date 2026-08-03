@@ -1,5 +1,7 @@
 # Captcha Solver JavaScript SDK
 
+![js-examples-banner](assets/repo-banner-javascript.png)
+
 Official JavaScript SDK for the Captcha Solver API. Solve reCAPTCHA v2/v3, Cloudflare Turnstile, GeeTest, Yandex SmartCaptcha, Tencent, and image/click captchas with a single method call.
 
 ## Table of Contents
