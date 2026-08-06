@@ -4,9 +4,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { CaptchaClient } from '../../src/client.js';
-import { ValidationError } from '../../src/exceptions.js';
-import * as Tasks from '../../src/tasks.js';
+import { CaptchaClient, Tasks, ValidationError } from 'captcha-sdk';
 
 describe('RecaptchaV3Proxyless', () => {
   test('requires minScore', () => {

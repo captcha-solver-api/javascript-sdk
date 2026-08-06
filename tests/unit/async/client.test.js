@@ -1,14 +1,12 @@
 /**
  * Generic tests for CaptchaClient (transport, error handling, polling) --
  * not tied to any specific captcha type, written in async/await style.
- * Mirrors tests/sync/client.test.js.
+ * Mirrors tests/unit/sync/client.test.js.
  * See <captcha_type>.test.js in this directory for per-type solve() tests.
  */
 
 import { jest } from '@jest/globals';
-import { CaptchaClient } from '../../src/client.js';
-import { ApiError, NetworkError, TimeoutError, ValidationError } from '../../src/exceptions.js';
-import * as Tasks from '../../src/tasks.js';
+import { ApiError, CaptchaClient, NetworkError, Tasks, TimeoutError, ValidationError } from 'captcha-sdk';
 
 describe('CaptchaClient (async)', () => {
   let client;

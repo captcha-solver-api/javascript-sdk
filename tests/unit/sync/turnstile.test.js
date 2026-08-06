@@ -4,8 +4,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { CaptchaClient } from '../../src/client.js';
-import * as Tasks from '../../src/tasks.js';
+import { CaptchaClient, Tasks } from 'captcha-sdk';
 
 describe('TurnstileProxyless', () => {
   test('toDict includes required fields', () => {

@@ -1,12 +1,11 @@
 /**
  * Async solve() test for RecaptchaV2Proxyless.
- * Task serialization is covered once in tests/sync/recaptcha_v2.test.js --
+ * Task serialization is covered once in tests/unit/sync/recaptcha_v2.test.js --
  * it doesn't depend on which style (sync/async) is used to call solve().
  */
 
 import { jest } from '@jest/globals';
-import { CaptchaClient } from '../../src/client.js';
-import * as Tasks from '../../src/tasks.js';
+import { CaptchaClient, Tasks } from 'captcha-sdk';
 
 test('solve', async () => {
   const client = new CaptchaClient({ clientKey: 'test_key', pollingInterval: 10 });

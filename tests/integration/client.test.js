@@ -3,8 +3,7 @@
  * is set in the environment. Run with `npm run test:integration`.
  */
 
-import { CaptchaClient } from '../src/client.js';
-import * as Tasks from '../src/tasks.js';
+import { CaptchaClient, Tasks } from 'captcha-sdk';
 
 describe('CaptchaClient integration', () => {
   let client;

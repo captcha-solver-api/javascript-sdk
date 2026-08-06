@@ -4,8 +4,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { CaptchaClient } from '../../src/client.js';
-import * as Tasks from '../../src/tasks.js';
+import { CaptchaClient, Tasks } from 'captcha-sdk';
 
 describe('GeeTest v3 and v4', () => {
   test('toDict for v3 excludes version field', () => {
