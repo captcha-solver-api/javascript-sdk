@@ -29,7 +29,7 @@ Official JavaScript SDK for the Captcha Solver API. Solve reCAPTCHA v2/v3, Cloud
 
 ## Installation
 ```bash
-# npm install captcha-sdk
+# npm install captcha-sdk from github.com
 
 npm install git+https://github.com/captcha-solver-api/javascript-sdk.git
 ```
