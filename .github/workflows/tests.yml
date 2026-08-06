@@ -1,0 +1,76 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Ночной прогон integration-тестов против реального API
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  unit:
+    name: Unit (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Соответствует engines.node: ">=18" в package.json
+        node-version: [18, 20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run unit tests with coverage
+        run: npm run test:unit -- --coverage
+
+      # Покрытие выгружается один раз, а не с каждой версии Node --
+      # цифра от версии не зависит, дубли только зашумят отчёт.
+      - name: Upload coverage to Coveralls
+        if: matrix.node-version == 20
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: coverage/lcov.info
+
+  integration:
+    name: Integration (real API)
+    # Только по расписанию и вручную. На pull_request не запускается намеренно:
+    # тесты тратят реальный баланс аккаунта, а в PR из форков секрет всё равно
+    # недоступен -- тесты молча пропустятся и дадут ложно-зелёный результат.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fail early if the API key is missing
+        # Без ключа integration-тесты пропускают сами себя и джоб зеленеет,
+        # ничего не проверив. Лучше упасть явно.
+        env:
+          CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        run: |
+          if [ -z "$CAPTCHA_API_KEY" ]; then
+            echo "::error::secrets.CAPTCHA_API_KEY is not set -- integration tests would silently skip"
+            exit 1
+          fi
+
+      - name: Run integration tests
+        env:
+          CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+        run: npm run test:integration
