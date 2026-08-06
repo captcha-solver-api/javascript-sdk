@@ -3,6 +3,10 @@
  * not tied to any specific captcha type, written in async/await style.
  * Mirrors tests/unit/sync/client.test.js.
  * See <captcha_type>.test.js in this directory for per-type solve() tests.
+ *
+ * Imports the SDK by package name on purpose, not by relative path into
+ * src/: that is what makes the suite exercise the package's real entry
+ * points. See tests/README.md for why. Do not "fix" it to ../../../src/.
  */
 
 import { jest } from '@jest/globals';

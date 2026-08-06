@@ -1,6 +1,10 @@
 /**
  * Async solve() tests for GeeTestProxyless (v3 and v4).
  * Task serialization is covered once in tests/unit/sync/geetest.test.js.
+ *
+ * Imports the SDK by package name on purpose, not by relative path into
+ * src/: that is what makes the suite exercise the package's real entry
+ * points. See tests/README.md for why. Do not "fix" it to ../../../src/.
  */
 
 import { jest } from '@jest/globals';

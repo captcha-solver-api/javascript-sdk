@@ -2,6 +2,10 @@
  * Async solve() test for RecaptchaV2Proxyless.
  * Task serialization is covered once in tests/unit/sync/recaptcha_v2.test.js --
  * it doesn't depend on which style (sync/async) is used to call solve().
+ *
+ * Imports the SDK by package name on purpose, not by relative path into
+ * src/: that is what makes the suite exercise the package's real entry
+ * points. See tests/README.md for why. Do not "fix" it to ../../../src/.
  */
 
 import { jest } from '@jest/globals';

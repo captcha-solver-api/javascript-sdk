@@ -2,6 +2,10 @@
  * Tests for RecaptchaV2Proxyless / RecaptchaV2 task serialization, plus a
  * solve() test in promise-chain style. Serialization is covered once here --
  * it doesn't depend on which style (sync/async) is used to call solve().
+ *
+ * Imports the SDK by package name on purpose, not by relative path into
+ * src/: that is what makes the suite exercise the package's real entry
+ * points. See tests/README.md for why. Do not "fix" it to ../../../src/.
  */
 
 import { jest } from '@jest/globals';

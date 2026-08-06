@@ -1,6 +1,10 @@
 /**
  * Real-API integration tests. Skipped automatically unless CAPTCHA_API_KEY
  * is set in the environment. Run with `npm run test:integration`.
+ *
+ * Imports the SDK by package name on purpose, not by relative path into
+ * src/: that is what makes the suite exercise the package's real entry
+ * points. See tests/README.md for why. Do not "fix" it to ../../../src/.
  */
 
 import { CaptchaClient, Tasks } from 'captcha-sdk';

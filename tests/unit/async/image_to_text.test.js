@@ -1,6 +1,10 @@
 /**
  * Async solve() test for ImageToText.
  * Task serialization is covered once in tests/unit/sync/image_to_text.test.js.
+ *
+ * Imports the SDK by package name on purpose, not by relative path into
+ * src/: that is what makes the suite exercise the package's real entry
+ * points. See tests/README.md for why. Do not "fix" it to ../../../src/.
  */
 
 import { jest } from '@jest/globals';
