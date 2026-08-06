@@ -1,0 +1,40 @@
+# TODO
+
+## Бейдж покрытия тестами в README
+
+**Статус:** отложено. Вся техническая подготовка сделана — осталось только то, что требует действий в веб-интерфейсе.
+
+### Что уже готово
+
+- [x] `jest.config.js` с `collectCoverageFrom: ['src/**/*.js']` — покрытие считается по всем файлам `src/`, а не только по импортированным из тестов.
+- [x] Тесты импортируют SDK по имени пакета (`captcha-sdk`), а не по прямым путям к файлам — покрытие отражает реальный публичный API.
+- [x] `tests/unit/public-api.test.js` — проверка контракта всех трёх точек входа из `exports`.
+- [x] CI-workflow `.github/workflows/tests.yml` — прогоняет unit-тесты и выгружает `coverage/lcov.info` в Coveralls.
+
+### Что осталось сделать
+
+- [ ] **Подключить репозиторий к Coveralls.** Зайти на [coveralls.io](https://coveralls.io), авторизоваться через GitHub, включить репозиторий `captcha-solver-api/javascript-sdk` в списке. Отдельный секрет не нужен — GitHub Action использует встроенный `GITHUB_TOKEN`.
+- [ ] **Дождаться первого прогона CI на `main`.** До него бейдж будет отдавать `unknown`.
+- [ ] **Добавить бейджи в начало `README.md`** (сразу под заголовком, перед описанием):
+
+  ```markdown
+  [![Tests](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml/badge.svg)](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml)
+  [![Coverage Status](https://coveralls.io/repos/github/captcha-solver-api/javascript-sdk/badge.svg?branch=main)](https://coveralls.io/github/captcha-solver-api/javascript-sdk?branch=main)
+  ```
+
+### Почему Coveralls, а не Codecov
+
+Для GitHub Actions Coveralls не требует отдельного секрета — хватает встроенного `GITHUB_TOKEN`. Codecov с 2024 года требует токен даже для публичных репозиториев, а такой секрет всё равно не будет доступен в PR из форков — то есть для внешних контрибьюторов выгрузка покрытия будет молча ломаться.
+
+### На что обратить внимание
+
+Покрытие считается **только по unit-тестам** (`npm run test:unit`). Integration-тесты в подсчёт не входят намеренно: без `CAPTCHA_API_KEY` они пропускаются, и цифра покрытия скакала бы в зависимости от того, был ли доступен ключ.
+
+---
+
+## Идеи на будущее (не приоритет)
+
+- [ ] `coverageThreshold` в `jest.config.js` — чтобы CI падал при просадке покрытия ниже порога. Имеет смысл включать после того, как бейдж заработает и станет понятен реальный базовый уровень.
+- [ ] Линтер (ESLint) — сейчас в проекте не настроен, в CI отдельного шага линтинга нет.
+- [ ] Тест на содержимое публикуемого пакета (`npm pack`) — проверить, что в тарбол попадает всё нужное из `files: ["src/"]`.
+- [ ] agent.md
