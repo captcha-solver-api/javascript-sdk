@@ -13,7 +13,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
 // GeeTest v4 tasks may take longer. Increase timeout if needed.
-const client = new CaptchaClient({ clientKey: apiKey, timeout: 300000, pollingInterval: 10000 });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey, timeout: 300000, pollingInterval: 10000 });
 
 // --- Proxyless example ---
 // v4 drops gt/challenge. The widget is identified by captcha_id inside initParameters.
@@ -27,7 +27,7 @@ const proxylessTask = new Tasks.GeeTestProxyless({
   // userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...',
 });
 
-client.solve(proxylessTask)
+captchaSolver.solve(proxylessTask)
   .then((result) => {
     // Solution contains { captcha_id, lot_number, pass_token, gen_time, captcha_output }
     console.log('result:', result);
@@ -50,7 +50,7 @@ const proxyTask = new Tasks.GeeTest({
   proxyPassword: 'password'    // Password for proxy authorization (optional)
 });
 
-client.solve(proxyTask)
+captchaSolver.solve(proxyTask)
   .then((result) => {
     console.log('result:', result);
   })

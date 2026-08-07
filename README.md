@@ -41,22 +41,22 @@ export CAPTCHA_API_KEY=your_api_key
 ```
 ```javascript
 import { CaptchaClient } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: process.env.CAPTCHA_API_KEY });
+const captchaSolver = new CaptchaClient({ clientKey: process.env.CAPTCHA_API_KEY });
 ```
 Or just pass the key directly, without an environment variable:
 ```javascript
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 ```
 ## Quick Start
 Solve a reCAPTCHA v2 in 4 lines.
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.RecaptchaV2Proxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: '6Le-xxxxxxxxx'
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.gRecaptchaResponse);
 ```
 Runnable versions of every example below live in [examples/async](examples/async) (async/await
@@ -80,7 +80,7 @@ the same `CaptchaClient`, since JavaScript has no blocking HTTP client to mirror
 ### reCAPTCHA v2 with proxy
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.RecaptchaV2({
   websiteURL: 'https://example.com/login',
   websiteKey: '6Le-xxxxxxxxx',
@@ -90,43 +90,43 @@ const task = new Tasks.RecaptchaV2({
   proxyLogin: 'user',
   proxyPassword: 'password'
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.gRecaptchaResponse);
 ```
 ### reCAPTCHA v2 Enterprise
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.RecaptchaV2EnterpriseProxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: '6Le-xxxxxxxxx',
   enterprisePayload: { s: 'data-s-value' }
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.gRecaptchaResponse);
 ```
 ### reCAPTCHA v3
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.RecaptchaV3Proxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: '6Le-xxxxxxxxx',
   minScore: 0.7,
   pageAction: 'login'
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.gRecaptchaResponse);
 ```
 ### Cloudflare Turnstile
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.TurnstileProxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: '0x4AAAAAAAxxxxxxxx'
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.token);
 ```
 ### Image to Text
@@ -134,50 +134,50 @@ console.log(result.token);
 import { CaptchaClient, Tasks } from 'captcha-sdk';
 import fs from 'fs';
 const imageBase64 = fs.readFileSync('captcha.png').toString('base64');
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.ImageToText({
   body: imageBase64,
   numeric: 1,
   minLength: 4,
   maxLength: 6
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.text);
 ```
 ### GeeTest v3
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.GeeTestProxyless({
   websiteURL: 'https://example.com/login',
   gt: 'f2ae6cadcf7886856696c46d84d109d1',
   challenge: '12345678abc90123d45678e90123f45g6'
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.validate);
 console.log(result.seccode);
 ```
 ### GeeTest v4
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.GeeTestProxyless({
   websiteURL: 'https://example.com/login',
   version: 4,
   initParameters: { captcha_id: 'e392e65f912c780f2c3ebac7702651de' }
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.captcha_output);
 ```
 ### Yandex SmartCaptcha
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.YandexSmartCaptchaTaskProxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: 'FEXfAbHQsToo97VidNVk3j4dC74nGW1DgdxK4OoR'
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.token);
 ```
 Use `Tasks.YandexSmartCaptchaTask` instead for the with-proxy variant (same extra
@@ -193,35 +193,35 @@ the "Yandex SmartCaptcha image mode" section in
 import { CaptchaClient, Tasks } from 'captcha-sdk';
 import fs from 'fs';
 const body = fs.readFileSync('captcha.png').toString('base64');
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.CoordinatesTask({
   body: body,
   comment: 'click on the green apple'
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.coordinates);
 ```
 ### Tencent
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.TencentTaskProxyless({
   websiteURL: 'https://example.com/login',
   appId: '190014885'
 });
-const result = await client.solve(task);
+const result = await captchaSolver.solve(task);
 console.log(result.ticket);
 ```
 ### Check balance
 ```javascript
 import { CaptchaClient } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
-const balance = await client.getBalance();
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
+const balance = await captchaSolver.getBalance();
 console.log(`Balance: ${balance}`);
 ```
 ### Custom timeout and polling
 ```javascript
-const client = new CaptchaClient({
+const captchaSolver = new CaptchaClient({
   clientKey: 'your_api_key',
   timeout: 180000,
   pollingInterval: 5000
@@ -230,9 +230,9 @@ const client = new CaptchaClient({
 ### Error handling
 ```javascript
 import { CaptchaClient, ApiError, TimeoutError, NetworkError, ValidationError } from 'captcha-sdk';
-const client = new CaptchaClient({ clientKey: 'your_api_key' });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 try {
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
 } catch (error) {
   if (error instanceof ValidationError) {
     console.log(`Invalid input: ${error.message}`);

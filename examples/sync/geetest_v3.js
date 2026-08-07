@@ -18,7 +18,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
 // GeeTest tasks may take longer. Increase timeout if needed.
-const client = new CaptchaClient({ clientKey: apiKey, timeout: 300000, pollingInterval: 10000 });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey, timeout: 300000, pollingInterval: 10000 });
 
 // Fetch a fresh challenge value from the target page.
 // In production, extract this from the page's initGeetest call or network requests.
@@ -38,7 +38,7 @@ fetch('https://target-site.com/path/to/geetest/init')
       // userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...',
     });
 
-    client.solve(proxylessTask)
+    captchaSolver.solve(proxylessTask)
       .then((result) => {
         // Solution contains { challenge, validate, seccode }
         console.log('result:', result);
@@ -59,7 +59,7 @@ fetch('https://target-site.com/path/to/geetest/init')
       proxyPassword: 'password'    // Password for proxy authorization (optional)
     });
 
-    client.solve(proxyTask)
+    captchaSolver.solve(proxyTask)
       .then((result) => {
         console.log('result:', result);
       })

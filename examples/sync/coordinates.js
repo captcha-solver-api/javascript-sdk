@@ -14,7 +14,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // Read and encode the captcha image to base64.
 // The body must be a pure base64 string without the data:image/...;base64, prefix.
@@ -27,7 +27,7 @@ const basicTask = new Tasks.CoordinatesTask({
   comment: 'click on the green apple'      // Text hint for the worker
 });
 
-client.solve(basicTask)
+captchaSolver.solve(basicTask)
   .then((result) => {
     // Solution contains { coordinates: [{ x: 358, y: 268 }] }
     console.log('result:', result);
@@ -48,7 +48,7 @@ const advancedTask = new Tasks.CoordinatesTask({
   maxClicks: 3                                 // Maximum number of clicks allowed
 });
 
-client.solve(advancedTask)
+captchaSolver.solve(advancedTask)
   .then((result) => {
     console.log('result:', result);
   })
@@ -65,7 +65,7 @@ const yandexTask = new Tasks.CoordinatesTask({
   comment: 'select objects in the order of the instruction'
 });
 
-client.solve(yandexTask)
+captchaSolver.solve(yandexTask)
   .then((result) => {
     console.log('result:', result);
   })

@@ -12,7 +12,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // --- Proxyless example ---
 // Enterprise captchas are loaded via the reCAPTCHA Enterprise API. If the site
@@ -29,7 +29,7 @@ const proxylessTask = new Tasks.RecaptchaV2EnterpriseProxyless({
   // cookies: 'session=abc123; token=xyz789',
 });
 
-client.solve(proxylessTask)
+captchaSolver.solve(proxylessTask)
   .then((result) => {
     // Solution contains { gRecaptchaResponse: "03AGdBq..." }
     console.log('result:', result);
@@ -50,7 +50,7 @@ const proxyTask = new Tasks.RecaptchaV2Enterprise({
   isInvisible: false
 });
 
-client.solve(proxyTask)
+captchaSolver.solve(proxyTask)
   .then((result) => {
     console.log('result:', result);
   })

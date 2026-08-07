@@ -14,7 +14,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
 // Image to Text tasks are usually fast. Default timeout is fine.
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // Read and encode the captcha image to base64.
 // The body must be a pure base64 string without the data:image/...;base64, prefix.
@@ -29,7 +29,7 @@ const basicTask = new Tasks.ImageToText({
   maxLength: 6          // Maximum expected answer length
 });
 
-client.solve(basicTask)
+captchaSolver.solve(basicTask)
   .then((result) => {
     // Solution contains { text: "aB3fX9" }
     console.log('result:', result);
@@ -55,7 +55,7 @@ const advancedTask = new Tasks.ImageToText({
   imgInstructions: imgInstructions                 // Optional instruction image for the worker
 });
 
-client.solve(advancedTask)
+captchaSolver.solve(advancedTask)
   .then((result) => {
     console.log('result:', result);
   })
@@ -74,7 +74,7 @@ const languagePoolTask = new Tasks.ImageToText({
   maxLength: 6
 });
 
-client.solve(languagePoolTask, 'en')  // Picks English-speaking worker pool
+captchaSolver.solve(languagePoolTask, 'en')  // Picks English-speaking worker pool
   .then((result) => {
     console.log('result:', result);
   })

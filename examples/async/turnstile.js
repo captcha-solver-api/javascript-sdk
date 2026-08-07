@@ -12,7 +12,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // --- Proxyless example ---
 // The token is tied to the User-Agent. If you pass userAgent, use the same
@@ -27,7 +27,7 @@ try {
     // pageData: 'chl-page-data-value',           // Value of chlPageData parameter
     // userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...',
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   // Solution contains { token: "0.zxcv..." }
   console.log('result:', result);
 } catch (error) {
@@ -50,7 +50,7 @@ try {
     // data: 'custom-cdata-value',
     // pageData: 'chl-page-data-value',
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   console.log('result:', result);
 } catch (error) {
   console.error(error);

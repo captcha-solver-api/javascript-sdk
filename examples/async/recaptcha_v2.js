@@ -14,7 +14,7 @@ const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 // Create a solver instance with your API key.
 // Optional: timeout (ms to wait for solution, default 120000)
 // Optional: pollingInterval (ms between status checks, default 2000)
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // --- Proxyless example ---
 // Solves reCAPTCHA v2 without a proxy. The service uses its own IP addresses.
@@ -24,7 +24,7 @@ try {
     websiteKey: '6Le-xxxxxxxxxxxxxxxxxxxxxxxxxxxx',     // data-sitekey attribute value
     isInvisible: false                                   // Set true for invisible reCAPTCHA
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   // Solution contains { gRecaptchaResponse: "03AGdBq..." }
   console.log('result:', result);
 } catch (error) {
@@ -45,7 +45,7 @@ try {
     proxyLogin: 'user',          // Login for proxy authorization (optional)
     proxyPassword: 'password'    // Password for proxy authorization (optional)
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   console.log('result:', result);
 } catch (error) {
   console.error(error);

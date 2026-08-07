@@ -11,7 +11,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // --- Proxyless example ---
 // The service's own proxies are used to solve the captcha.
@@ -24,7 +24,7 @@ try {
     // userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...',
     // cookies: 'session=abc123; token=xyz789',
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   // Solution contains { token: "dV9xNjYyNTU3NjkxO4k9OTQuNVMuMjkuMjM9..." }
   console.log('result:', result);
 } catch (error) {
@@ -44,7 +44,7 @@ try {
     proxyLogin: 'user',          // Login for proxy authorization (optional)
     proxyPassword: 'password'    // Password for proxy authorization (optional)
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   console.log('result:', result);
 } catch (error) {
   console.error(error);

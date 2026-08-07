@@ -12,7 +12,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // --- Proxyless example ---
 // The service's own proxies are used to solve the captcha.
@@ -24,7 +24,7 @@ const proxylessTask = new Tasks.TencentTaskProxyless({
   // captchaScript: 'https://turing.captcha.qcloud.com/TCaptcha.js',
 });
 
-client.solve(proxylessTask)
+captchaSolver.solve(proxylessTask)
   .then((result) => {
     // Solution contains { appid, ret, ticket, randstr }
     // Pass all four values together into the page's captcha callback as-is.
@@ -47,7 +47,7 @@ const proxyTask = new Tasks.TencentTask({
   proxyPassword: 'password'    // Password for proxy authorization (optional)
 });
 
-client.solve(proxyTask)
+captchaSolver.solve(proxyTask)
   .then((result) => {
     console.log('result:', result);
   })

@@ -12,7 +12,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // --- Proxyless example ---
 // The token is tied to the User-Agent. If you pass userAgent, use the same
@@ -27,7 +27,7 @@ const proxylessTask = new Tasks.TurnstileProxyless({
   // userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...',
 });
 
-client.solve(proxylessTask)
+captchaSolver.solve(proxylessTask)
   .then((result) => {
     // Solution contains { token: "0.zxcv..." }
     console.log('result:', result);
@@ -52,7 +52,7 @@ const proxyTask = new Tasks.Turnstile({
   // pageData: 'chl-page-data-value',
 });
 
-client.solve(proxyTask)
+captchaSolver.solve(proxyTask)
   .then((result) => {
     console.log('result:', result);
   })

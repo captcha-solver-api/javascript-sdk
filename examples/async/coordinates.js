@@ -14,7 +14,7 @@ import { CaptchaClient, Tasks } from '../../src/index.js';
 
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
-const client = new CaptchaClient({ clientKey: apiKey });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // Read and encode the captcha image to base64.
 // The body must be a pure base64 string without the data:image/...;base64, prefix.
@@ -27,7 +27,7 @@ try {
     body: body,                             // Base64-encoded captcha image (required)
     comment: 'click on the green apple'      // Text hint for the worker
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   // Solution contains { coordinates: [{ x: 358, y: 268 }] }
   console.log('result:', result);
 } catch (error) {
@@ -46,7 +46,7 @@ try {
     minClicks: 1,                                // Minimum number of clicks (default 1)
     maxClicks: 3                                 // Maximum number of clicks allowed
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   console.log('result:', result);
 } catch (error) {
   console.error(error);
@@ -62,7 +62,7 @@ try {
     imgInstructions: yandexInstructions,         // Required for smart_captcha
     comment: 'select objects in the order of the instruction'
   });
-  const result = await client.solve(task);
+  const result = await captchaSolver.solve(task);
   console.log('result:', result);
 } catch (error) {
   console.error(error);
