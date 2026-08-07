@@ -324,6 +324,35 @@ npm run test:unit -- --watch
 npm run test:unit -- --coverage
 ```
 
+Всё то же работает и для integration — путь просто указывает на другой каталог:
+
+```bash
+# один интеграционный файл: бесплатно, только ключ и сеть
+npm test -- tests/integration/balance.test.js
+
+# один интеграционный файл: платная проверка
+npm test -- tests/integration/turnstile.test.js
+
+# весь интеграционный каталог (то же, что npm run test:integration)
+npm test -- tests/integration
+
+# один тест по имени внутри файла
+npm test -- tests/integration/tencent.test.js -t "solve returns a ticket"
+
+# подробный вывод: видно, какие сьюты пропущены и почему их стоит перепроверить
+npm run test:integration -- --verbose
+```
+
+Две оговорки, специфичные именно для integration:
+
+**Фильтр `-t` без пути пройдётся и по интеграционным тестам.** `npm test -- -t "solve"` подхватит все платные сьюты, у которых настроены цели. Указывайте путь к файлу вместе с `-t`, если не хотите неожиданных списаний.
+
+**Jest запускает файлы параллельно**, по воркеру на файл. Пока платных файлов немного, это не мешает, но прогон всего каталога отправляет несколько задач в API одновременно. Чтобы шли по очереди:
+
+```bash
+npm run test:integration -- --runInBand
+```
+
 Можно вызывать Jest и напрямую, но тогда флаг `--experimental-vm-modules` нужно указывать самому:
 
 ```bash
