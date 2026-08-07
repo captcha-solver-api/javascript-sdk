@@ -34,12 +34,18 @@ jobs:
 
       # Покрытие выгружается один раз, а не с каждой версии Node --
       # цифра от версии не зависит, дубли только зашумят отчёт.
+      #
+      # fail-on-error: false -- выгрузка покрытия вспомогательная, и её сбой
+      # не должен красить джоб, в котором все тесты прошли. Иначе недоступность
+      # Coveralls или неподключённый репозиторий блокируют мёрж рабочего PR.
+      # Устаревший бейдж заметен и сам по себе.
       - name: Upload coverage to Coveralls
         if: matrix.node-version == 20
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: coverage/lcov.info
+          fail-on-error: false
 
   integration:
     name: Integration (real API)
