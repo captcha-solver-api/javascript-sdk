@@ -37,10 +37,12 @@ export function describeIntegration(name, fn) {
 /**
  * Same as describeIntegration, but also requires a target to be configured.
  *
- * Solving a real captcha needs a real page and its sitekey, and those are
- * deliberately absent from this repository -- see tests/README.md. Every
- * value comes from the environment, so a suite whose variables are unset
- * skips instead of failing on `undefined`:
+ * Solving a real captcha needs a real page and whatever identifies the widget
+ * on it -- a sitekey for reCAPTCHA, Turnstile and Yandex, an appId for
+ * Tencent, a captchaId for GeeTest v4. Those are deliberately absent from this
+ * repository -- see tests/README.md. Every value comes from the environment,
+ * so a suite whose variables are unset skips instead of failing on
+ * `undefined`:
  *
  *   describeTarget('Turnstile', ['TURNSTILE_URL', 'TURNSTILE_SITE_KEY'], (env) => {
  *     test('...', async () => {

@@ -2,8 +2,9 @@
  * Example: Solve an Image to Text challenge.
  *
  * Prerequisites:
- *   Set the CAPTCHA_API_KEY environment variable.
- *   Provide a captcha image file as base64 in the body parameter.
+ *   Set the CAPTCHA_API_KEY environment variable. That is all: the sample
+ *   captcha ships with the repository, in examples/assets/.
+ *   Point the read below at your own file to solve a different image.
  *   Use optional fields to give hints to the worker for faster solving.
  */
 
@@ -18,13 +19,16 @@ const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // Read and encode the captcha image to base64.
 // The body must be a pure base64 string without the data:image/...;base64, prefix.
-const body = fs.readFileSync('./captcha.png').toString('base64');
+// The path is resolved against this file rather than the working directory, so
+// the example runs from anywhere -- including from the repository root.
+const body = fs.readFileSync(new URL('../assets/text-captcha.png', import.meta.url)).toString('base64');
 
 // --- Basic example ---
-// Solves a simple image captcha with character set hints.
+// Solves a simple image captcha with character set hints. The hints below match
+// the sample image, which is letters and no digits -- adjust them for your own.
 const basicTask = new Tasks.ImageToText({
   body: body,          // Base64-encoded image (required)
-  numeric: 1,          // 1 = digits only
+  numeric: 2,          // 2 = letters only
   minLength: 4,        // Minimum expected answer length
   maxLength: 6          // Maximum expected answer length
 });
@@ -40,7 +44,16 @@ captchaSolver.solve(basicTask)
 
 // --- Advanced example ---
 // Solves a math captcha with comment and instruction image.
-const imgInstructions = fs.readFileSync('./captcha_hint.png').toString('base64');
+//
+// Commented out, because it needs a second picture -- the instruction image
+// shown to the worker -- and the repository does not ship one yet. Put your own
+// text-captcha-hint.png into examples/assets/ and uncomment the block. Note the
+// sample image is not a math captcha, so `math: true` fits your own image, not
+// this one.
+/*
+const imgInstructions = fs.readFileSync(
+  new URL('../assets/text-captcha-hint.png', import.meta.url)
+).toString('base64');
 
 const advancedTask = new Tasks.ImageToText({
   body: body,                                    // Base64-encoded captcha image
@@ -62,6 +75,7 @@ captchaSolver.solve(advancedTask)
   .catch((error) => {
     console.error(error);
   });
+*/
 
 // --- With language pool ---
 // The languagePool parameter selects the worker pool by language.
@@ -69,7 +83,7 @@ captchaSolver.solve(advancedTask)
 // Accepted values: "en" (English) or "ru" (Russian).
 const languagePoolTask = new Tasks.ImageToText({
   body: body,
-  numeric: 1,
+  numeric: 2,
   minLength: 4,
   maxLength: 6
 });

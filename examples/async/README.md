@@ -130,24 +130,28 @@ the site loads the widget from a non-default script URL. Solution: `appid`, `ret
 
 [Source code](image_to_text.js) · [API documentation](https://captcha-solver.com/en/docs/captcha-types#image-to-text)
 
-Three blocks, no proxy variant. *Basic* sends just the base64 image. *Advanced* adds the hints that
-narrow the search for the worker — `numeric`, `phrase`, `minLength`/`maxLength`, `comment`, and a
-`captcha_hint.png` passed as `imgInstructions`. *With language pool* demonstrates the one API detail
-that is easy to get wrong: `languagePool` is the **second argument to `solve()`**, not a task field —
-`await captchaSolver.solve(task, 'en')`, accepting `'en'` or `'ru'`.
+Three blocks, no proxy variant. *Basic* sends the base64 image with the character-set hints that
+match the shipped sample — `numeric: 2` (letters), `minLength`/`maxLength`. *Advanced* adds the rest
+— `phrase`, `math`, `comment`, and a `text-captcha-hint.png` passed as `imgInstructions` — and is
+**commented out**, because that hint image is not in the repository yet. *With language pool*
+demonstrates the one API detail that is easy to get wrong: `languagePool` is the **second argument to
+`solve()`**, not a task field — `await captchaSolver.solve(task, 'en')`, accepting `'en'` or `'ru'`.
 
-Reads `./captcha.png` and `./captcha_hint.png` **relative to the working directory**, so run it from
-where those files are. Solution: `text`.
+Reads [../assets/text-captcha.png](../assets/text-captcha.png) via `new URL(..., import.meta.url)`,
+so the path holds **regardless of the working directory** and the script runs as-is. Solution:
+`text`.
 
 ### coordinates.js
 
 [Source code](coordinates.js) · [API documentation](https://captcha-solver.com/en/docs/captcha-types#coordinates)
 
-Three blocks, no proxy variant. *Basic* submits an image plus a `comment` telling the worker what to
-click. *Advanced* adds an `instruction.png` as `imgInstructions` and constrains the answer with
-`minClicks`/`maxClicks`. *Yandex SmartCaptcha image mode* reuses the same `CoordinatesTask` with
-`imgType: 'smart_captcha'` (object selection) or `'pazl_smart_captcha'` (puzzle), which is how the
-image variant of Yandex SmartCaptcha is solved.
+Three blocks, no proxy variant. *Basic* submits the shipped grid captcha plus a `comment` telling the
+worker what to click. *Advanced* adds a `coordinates-captcha-instruction.png` as `imgInstructions`
+and constrains the answer with `minClicks`/`maxClicks`. *Yandex SmartCaptcha image mode* reuses the
+same `CoordinatesTask` with `imgType: 'smart_captcha'` (object selection) or `'pazl_smart_captcha'`
+(puzzle), which is how the image variant of Yandex SmartCaptcha is solved. The last two are
+**commented out**: both need that instruction image, which is not in the repository yet.
 
-Reads `./captcha.png` and `./instruction.png` **relative to the working directory**. Solution:
-`coordinates`, an array of `{ x, y }` points.
+Reads [../assets/coordinates-captcha.png](../assets/coordinates-captcha.png) via
+`new URL(..., import.meta.url)`, so the path holds **regardless of the working directory** and the
+script runs as-is. Solution: `coordinates`, an array of `{ x, y }` points.

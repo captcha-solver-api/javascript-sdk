@@ -143,19 +143,22 @@ the site loads the widget from a non-default script URL.
 
 ### Image to Text
 
-Three blocks, no proxy variant. *Basic* submits a base64 image and nothing else. *Advanced* adds the
-hints that speed up recognition — `numeric`, `phrase`, `minLength`/`maxLength`, `comment` and an
-`imgInstructions` image. *With language pool* shows that `languagePool` is the **second argument to
+Three blocks, no proxy variant. *Basic* submits the base64 image with the character-set hints that
+match the shipped sample — letters, no digits. *Advanced* adds the rest of the hints that speed up
+recognition — `phrase`, `math`, `comment` and an `imgInstructions` image — and is commented out for
+want of that second image. *With language pool* shows that `languagePool` is the **second argument to
 `solve()`**, not a task field: `solve(task, 'en')` picks an English-speaking worker pool (`'en'` or
 `'ru'`).
 
 ### Coordinates (click captcha)
 
-Three blocks, no proxy variant. *Basic* passes an image plus a `comment` telling the worker what to
-click. *Advanced* adds an `imgInstructions` image and the `minClicks`/`maxClicks` limits. *Yandex
-SmartCaptcha image mode* reuses `CoordinatesTask` with `imgType: 'smart_captcha'` (object selection)
-or `'pazl_smart_captcha'` (puzzle) — this is how you solve Yandex's image challenge rather than its
-token challenge.
+Three blocks, no proxy variant. *Basic* passes the shipped grid captcha plus a `comment` telling the
+worker what to click — it repeats the instruction printed on the image itself, since nothing
+guarantees the worker reads that. *Advanced* adds an `imgInstructions` image and the
+`minClicks`/`maxClicks` limits. *Yandex SmartCaptcha image mode* reuses `CoordinatesTask` with
+`imgType: 'smart_captcha'` (object selection) or `'pazl_smart_captcha'` (puzzle) — this is how you
+solve Yandex's image challenge rather than its token challenge. The last two are commented out: both
+need an instruction image the repository does not ship.
 
 ### Account balance
 
@@ -176,12 +179,20 @@ Every example except `balance.js` needs something replaced first.
 | `tencent.js` | Real `websiteURL` and `appId` |
 | `geetest_v3.js` | Real `websiteURL` and `gt`, **plus a real init endpoint** (see below) |
 | `geetest_v4.js` | Real `websiteURL` and `captcha_id` |
-| `image_to_text.js` | `captcha.png` and `captcha_hint.png` in the working directory |
-| `coordinates.js` | `captcha.png` and `instruction.png` in the working directory |
+| `image_to_text.js` | Nothing — the sample image ships in [assets/](assets/) |
+| `coordinates.js` | Nothing — the sample image ships in [assets/](assets/) |
 
-**Image files are resolved against the working directory**, not the script location — `fs.readFileSync('./captcha.png')`
-looks in wherever you launched `node` from. Run those two examples from the directory holding your
-images, or edit the paths. The repository intentionally ships no sample images.
+**The two image examples run as-is**, with a valid key and nothing else. They read
+[assets/text-captcha.png](assets/text-captcha.png) and
+[assets/coordinates-captcha.png](assets/coordinates-captcha.png) through
+`new URL('../assets/…', import.meta.url)`, which resolves against the script rather than the working
+directory — so `node examples/async/coordinates.js` works from the repository root just as well as
+from anywhere else. Point the read at your own file to solve a different image.
+
+**One block in each is commented out**: *Advanced* in `image_to_text.js`, and both *Advanced* and
+*Yandex SmartCaptcha image mode* in `coordinates.js`. All three need a second picture — the
+instruction image passed as `imgInstructions` — and the repository does not ship one yet. Drop your
+own into [assets/](assets/) under the name the block expects and uncomment it.
 
 **`geetest_v3.js` will not run end-to-end as-is.** It fetches
 `https://target-site.com/path/to/geetest/init`, which is a placeholder, not a live endpoint; the

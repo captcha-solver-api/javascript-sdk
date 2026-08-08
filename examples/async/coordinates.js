@@ -2,9 +2,10 @@
  * Example: Solve a click-based image captcha using CoordinatesTask.
  *
  * Prerequisites:
- *   Set the CAPTCHA_API_KEY environment variable.
- *   Provide the captcha image as base64 in the body parameter.
- *   Use comment to tell the worker what to click on the image.
+ *   Set the CAPTCHA_API_KEY environment variable. That is all: the sample
+ *   captcha ships with the repository, in examples/assets/.
+ *   Point the read below at your own file to solve a different image, and use
+ *   comment to tell the worker what to click on it.
  *   No proxy is required. The image is submitted directly to the service.
  */
 
@@ -18,14 +19,18 @@ const captchaSolver = new CaptchaClient({ clientKey: apiKey });
 
 // Read and encode the captcha image to base64.
 // The body must be a pure base64 string without the data:image/...;base64, prefix.
-const body = fs.readFileSync('./captcha.png').toString('base64');
+// The path is resolved against this file rather than the working directory, so
+// the example runs from anywhere -- including from the repository root.
+const body = fs.readFileSync(new URL('../assets/coordinates-captcha.png', import.meta.url)).toString('base64');
 
 // --- Basic example ---
-// Solves a simple click-based captcha with a hint for the worker.
+// Solves a simple click-based captcha with a hint for the worker. The comment
+// repeats the instruction printed on the sample image, because nothing
+// guarantees the worker reads the text baked into the picture.
 try {
   const task = new Tasks.CoordinatesTask({
-    body: body,                             // Base64-encoded captcha image (required)
-    comment: 'click on the green apple'      // Text hint for the worker
+    body: body,                                          // Base64-encoded captcha image (required)
+    comment: 'click on all squares with street signs'     // Text hint for the worker
   });
   const result = await captchaSolver.solve(task);
   // Solution contains { coordinates: [{ x: 358, y: 268 }] }
@@ -36,7 +41,15 @@ try {
 
 // --- Advanced example ---
 // Solves a captcha with instruction image and click count limits.
-const imgInstructions = fs.readFileSync('./instruction.png').toString('base64');
+//
+// This block and the Yandex one below are commented out: both need a second
+// picture -- the instruction image -- and the repository does not ship one yet.
+// Put your own coordinates-captcha-instruction.png into examples/assets/ and
+// uncomment.
+/*
+const imgInstructions = fs.readFileSync(
+  new URL('../assets/coordinates-captcha-instruction.png', import.meta.url)
+).toString('base64');
 
 try {
   const task = new Tasks.CoordinatesTask({
@@ -55,7 +68,9 @@ try {
 // --- Yandex SmartCaptcha image mode ---
 // CoordinatesTask also solves Yandex SmartCaptcha in image mode via imgType.
 try {
-  const yandexInstructions = fs.readFileSync('./instruction.png').toString('base64');
+  const yandexInstructions = fs.readFileSync(
+    new URL('../assets/coordinates-captcha-instruction.png', import.meta.url)
+  ).toString('base64');
   const task = new Tasks.CoordinatesTask({
     body: body,
     imgType: 'smart_captcha',                    // smart_captcha for object selection, or pazl_smart_captcha for puzzle
@@ -67,3 +82,4 @@ try {
 } catch (error) {
   console.error(error);
 }
+*/
