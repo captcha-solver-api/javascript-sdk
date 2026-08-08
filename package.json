@@ -1,6 +1,6 @@
 {
   "name": "captcha-sdk",
-  "version": "1.1.0",
+  "version": "0.0.1",
   "description": "Official JavaScript SDK for the Captcha Solver API. Solve reCAPTCHA v2/v3, Cloudflare Turnstile, GeeTest, Yandex SmartCaptcha, Tencent, and image/click captchas.",
   "main": "src/index.js",
   "type": "module",
