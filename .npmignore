@@ -1,5 +1,5 @@
 # What ends up in the published package is primarily controlled by the
-# "files": ["src/"] field in package.json -- that's an allowlist and takes
+# "files": ["dist/"] field in package.json -- that's an allowlist and takes
 # precedence over this file. This file is a second line of defense in case
 # "files" is ever removed or broadened: nothing extra leaks into the tarball
 # silently.
