@@ -1,0 +1,70 @@
+{
+  "name": "captcha-sdk",
+  "version": "1.0.0",
+  "description": "Official JavaScript SDK for the Captcha Solver API. Solve reCAPTCHA v2, Cloudflare Turnstile, GeeTest, Tencent, and image captchas.",
+  "main": "./dist/index.cjs",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./tasks": {
+      "types": "./dist/tasks.d.ts",
+      "import": "./dist/tasks.js",
+      "require": "./dist/tasks.cjs"
+    },
+    "./exceptions": {
+      "types": "./dist/exceptions.d.ts",
+      "import": "./dist/exceptions.js",
+      "require": "./dist/exceptions.cjs"
+    }
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts src/tasks.ts src/exceptions.ts --format esm,cjs --dts --clean",
+    "test": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:unit": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
+    "test:integration": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration",
+    "prepublishOnly": "npm run test:unit -- --runInBand"
+  },
+  "keywords": [
+    "captcha-solver",
+    "captcha-solving",
+    "recaptcha-v2",
+    "cloudflare-turnstile",
+    "geetest",
+    "tencent-captcha",
+    "image-to-text",
+    "captcha-recognition",
+    "captcha-bypass",
+    "captcha-api"
+  ],
+  "author": "Captcha Solver",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.0",
+    "jest": "^29.7.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/captcha-solver-api/javascript-sdk-old"
+  },
+  "bugs": {
+    "url": "https://github.com/captcha-solver-api/javascript-sdk-old/issues"
+  },
+  "homepage": "https://github.com/captcha-solver-api/javascript-sdk-old#readme",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "overrides": {
+    "esbuild": "0.28.1"
+  }
+}
