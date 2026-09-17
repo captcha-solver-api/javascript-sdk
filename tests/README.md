@@ -1,6 +1,6 @@
 # SDK tests
 
-Documentation for the `captcha-sdk` test suite: what is covered, how to run it by hand, and what runs in CI.
+Documentation for the `@captcha-solver-api/javascript-sdk` test suite: what is covered, how to run it by hand, and what runs in CI.
 
 ## Contents
 
@@ -72,7 +72,7 @@ Unit tests are fully isolated: the network layer is replaced either through `glo
 Every test pulls in the SDK **by package name**, the way a user would, rather than by direct file paths:
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 ```
 
 This works with no extra setup: Node supports self-reference — a package can import itself by name as long as `package.json` has a `name` and an `exports` map. Jest's resolver honours that, including the ban on undeclared subpaths.
@@ -161,10 +161,10 @@ Every other test already imports the package by name, so a broken main entry wou
 | `exposes the client, the task namespace and every error class` | `.` exposes `CaptchaClient`, `Tasks` and all 5 error classes |
 | `Tasks namespace exposes every task class` | `Tasks` holds all 16 task classes |
 | `__version__ matches the version in package.json` | `__version__` has not drifted from `version` during a release |
-| `"captcha-sdk/tasks" exposes every task class` | the `./tasks` subpath resolves and hands back every class |
-| `"captcha-sdk/exceptions" exposes every error class` | the `./exceptions` subpath resolves and hands back every class |
+| `"@captcha-solver-api/javascript-sdk/tasks" exposes every task class` | the `./tasks` subpath resolves and hands back every class |
+| `"@captcha-solver-api/javascript-sdk/exceptions" exposes every error class` | the `./exceptions` subpath resolves and hands back every class |
 | `subpaths and the main entry expose the same classes` | these are the **same** objects, not duplicate module instances — otherwise `instanceof` would break for anyone mixing import styles |
-| `internal modules are not reachable as subpaths` | `captcha-sdk/client` is rejected: the file exists, but it is not declared in `exports` and must stay private |
+| `internal modules are not reachable as subpaths` | `@captcha-solver-api/javascript-sdk/client` is rejected: the file exists, but it is not declared in `exports` and must stay private |
 
 The class lists in the test are spelled out as explicit arrays rather than derived from the module itself. That is deliberate: comparing an export against itself always passes and checks nothing. Adding a new captcha type means extending the array by hand — and that is exactly the point where the decision to make a class public gets recorded explicitly.
 

@@ -22,7 +22,7 @@
 
 import fs from 'node:fs';
 
-import { Tasks } from 'captcha-sdk';
+import { Tasks } from '@captcha-solver-api/javascript-sdk';
 import { describeIntegration, createClient } from './helpers.js';
 
 const imagePath = new URL('../../examples/assets/text-captcha.png', import.meta.url);

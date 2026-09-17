@@ -49,7 +49,7 @@ importable, but the API will reject it — set a real key before expecting resul
 `await`.
 
 > The scripts import the SDK by package name, exactly as consumer applications do:
-> `import { CaptchaClient, Tasks } from 'captcha-sdk';`
+> `import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';`
 
 ## Running an example
 

@@ -10,7 +10,7 @@
  * widget from a non-default script URL.
  */
 
-import { Tasks } from 'captcha-sdk';
+import { Tasks } from '@captcha-solver-api/javascript-sdk';
 import { describeTarget, createClient } from './helpers.js';
 
 describeTarget('Tencent against the real API', ['TENCENT_URL', 'TENCENT_APP_ID'], (env) => {

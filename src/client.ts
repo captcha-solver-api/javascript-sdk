@@ -51,7 +51,7 @@ export type SolutionOf<T> = T extends BaseTask<infer S> ? S : Record<string, unk
  *
  * @example
  * ```ts
- * import { CaptchaClient, Tasks } from 'captcha-sdk';
+ * import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
  *
  * const client = new CaptchaClient({ clientKey: 'your_api_key' });
  * const task = new Tasks.RecaptchaV2Proxyless({

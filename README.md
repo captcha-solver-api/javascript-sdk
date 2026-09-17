@@ -42,7 +42,7 @@ Full API reference (all endpoints, error codes, captcha-type details): **https:/
 ## Installation
 
 ```bash
-npm install captcha-sdk
+npm install @captcha-solver-api/javascript-sdk
 ```
 
 ## Configuration
@@ -55,7 +55,7 @@ export CAPTCHA_API_KEY=your_api_key
 ```
 
 ```javascript
-import { CaptchaClient } from 'captcha-sdk';
+import { CaptchaClient } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: process.env.CAPTCHA_API_KEY });
 ```
 
@@ -70,7 +70,7 @@ const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 Solve a reCAPTCHA v2 in 4 lines.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.RecaptchaV2Proxyless({
   websiteURL: 'https://example.com/login',
@@ -203,7 +203,7 @@ Choose the proxy variant when the solving session must use your own IP address.
 **Response:** `gRecaptchaResponse` -- submit as `g-recaptcha-response`.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.RecaptchaV2Proxyless({
   websiteURL: 'https://example.com/login',
@@ -245,7 +245,7 @@ as reCAPTCHA v2, plus:
 **Response:** `gRecaptchaResponse`.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.RecaptchaV2EnterpriseProxyless({
   websiteURL: 'https://example.com/login',
@@ -277,7 +277,7 @@ this task only without a customer proxy.
 **Response:** `gRecaptchaResponse`.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.RecaptchaV3Proxyless({
@@ -316,7 +316,7 @@ worker actually solved with. The token is tied to that fingerprint, so submit it
 User-Agent, not one you chose yourself.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.TurnstileProxyless({
   websiteURL: 'https://example.com/login',
@@ -352,7 +352,7 @@ browser session involved.
 **Response:** `text` -- the recognized text/answer.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 import fs from 'fs';
 const imageBase64 = fs.readFileSync('examples/assets/text-captcha.png').toString('base64');
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
@@ -391,7 +391,7 @@ pass the values collected from the target page before creating the task.
 Docs: [v3 ↗](https://captcha-solver.com/en/docs/captcha-types#geetest-v3), [v4 ↗](https://captcha-solver.com/en/docs/captcha-types#geetest-v4)
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key', timeout: 300000, pollingInterval: 10000 });
 const task = new Tasks.GeeTestProxyless({
   websiteURL: 'https://example.com/login',
@@ -441,7 +441,7 @@ Proxy variant note: `proxyType` also accepts `'https'` for this captcha type onl
 **Response:** `token`.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.YandexSmartCaptchaTaskProxyless({
   websiteURL: 'https://example.com/login',
@@ -474,7 +474,7 @@ directly.
 **Response:** `coordinates` -- an array of `{ x, y }` pixel positions to click, in order.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 import fs from 'fs';
 const body = fs.readFileSync('examples/assets/coordinates-captcha.png').toString('base64');
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
@@ -506,7 +506,7 @@ values required by the target page.
 **Response:** `appid`, `ret`, `ticket`, `randstr` -- pass all four into the page's Tencent captcha callback.
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.TencentTaskProxyless({
   websiteURL: 'https://example.com/register',
@@ -523,7 +523,7 @@ With proxy, use `Tasks.TencentTask` (same proxy fields as reCAPTCHA v2).
 ### Check balance
 
 ```javascript
-import { CaptchaClient } from 'captcha-sdk';
+import { CaptchaClient } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const balance = await captchaSolver.getBalance();
 console.log(`Balance: ${balance}`);
@@ -554,7 +554,7 @@ const result = await captchaSolver.solve(task, 'en');
 concurrently is just `Promise.all()` -- no separate async client needed:
 
 ```javascript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 
 const task1 = captchaSolver.solve(new Tasks.RecaptchaV2Proxyless({ websiteURL: 'https://site1.com', websiteKey: 'key1' }));
@@ -567,7 +567,7 @@ This completes in roughly the time of the slowest single captcha, not the sum of
 ### Error handling
 
 ```javascript
-import { CaptchaClient, ApiError, TimeoutError, NetworkError, ValidationError } from 'captcha-sdk';
+import { CaptchaClient, ApiError, TimeoutError, NetworkError, ValidationError } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 try {
   const result = await captchaSolver.solve(task);
@@ -591,8 +591,8 @@ Every task constructor takes a typed options object, and `solve()` infers the
 solution type from the task class:
 
 ```typescript
-import { CaptchaClient, Tasks } from 'captcha-sdk';
-import type { TurnstileSolution } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
+import type { TurnstileSolution } from '@captcha-solver-api/javascript-sdk';
 
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 

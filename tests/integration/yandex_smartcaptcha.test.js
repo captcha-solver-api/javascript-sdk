@@ -9,7 +9,7 @@
  *
  */
 
-import { Tasks } from 'captcha-sdk';
+import { Tasks } from '@captcha-solver-api/javascript-sdk';
 import { describeTarget, createClient } from './helpers.js';
 
 const REQUIRED = ['YANDEX_SMARTCAPTCHA_URL', 'YANDEX_SMARTCAPTCHA_SITE_KEY'];

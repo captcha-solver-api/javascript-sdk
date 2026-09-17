@@ -15,7 +15,7 @@
 // an error. Unit tests do not import this file and stay unaffected.
 import 'dotenv/config';
 
-import { CaptchaClient } from 'captcha-sdk';
+import { CaptchaClient } from '@captcha-solver-api/javascript-sdk';
 
 export const apiKey = process.env.CAPTCHA_API_KEY;
 

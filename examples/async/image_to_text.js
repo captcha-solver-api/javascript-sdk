@@ -10,7 +10,7 @@
 
 import 'dotenv/config';
 import fs from 'fs';
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 

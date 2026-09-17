@@ -1,5 +1,5 @@
 {
-  "name": "captcha-sdk",
+  "name": "@captcha-solver-api/javascript-sdk",
   "version": "1.0.0",
   "description": "Official JavaScript SDK for the Captcha Solver API. Solve reCAPTCHA v2, Cloudflare Turnstile, GeeTest, Tencent, and image captchas.",
   "main": "./dist/index.cjs",

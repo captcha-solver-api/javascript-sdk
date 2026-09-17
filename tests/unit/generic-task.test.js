@@ -1,4 +1,4 @@
-import { Tasks } from 'captcha-sdk';
+import { Tasks } from '@captcha-solver-api/javascript-sdk';
 
 test('GenericTask preserves any supported API task payload', () => {
   const task = new Tasks.GenericTask({

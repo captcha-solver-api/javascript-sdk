@@ -8,7 +8,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 
 test('solve v3', async () => {
   const client = new CaptchaClient({ clientKey: 'test_key', pollingInterval: 10 });

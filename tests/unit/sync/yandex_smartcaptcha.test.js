@@ -8,7 +8,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 
 describe('YandexSmartCaptchaTaskProxyless', () => {
   test('toDict includes required fields', () => {

@@ -13,7 +13,7 @@
  * that looks like. v4 identifies the widget by captcha_id, which is stable.
  */
 
-import { Tasks } from 'captcha-sdk';
+import { Tasks } from '@captcha-solver-api/javascript-sdk';
 import { describeTarget, createClient } from './helpers.js';
 
 describeTarget('GeeTest v4 against the real API', ['GEETEST_V4_URL', 'GEETEST_V4_CAPTCHA_ID'], (env) => {

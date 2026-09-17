@@ -8,7 +8,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { CaptchaClient, Tasks } from 'captcha-sdk';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 
 describe('GeeTest v3 and v4', () => {
   test('toDict for v3 excludes version field', () => {

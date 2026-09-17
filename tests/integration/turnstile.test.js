@@ -11,7 +11,7 @@
  * kind of test: it would need a scraper of its own to stay meaningful.
  */
 
-import { Tasks } from 'captcha-sdk';
+import { Tasks } from '@captcha-solver-api/javascript-sdk';
 import { describeTarget, createClient } from './helpers.js';
 
 describeTarget('Turnstile against the real API', ['TURNSTILE_URL', 'TURNSTILE_SITE_KEY'], (env) => {

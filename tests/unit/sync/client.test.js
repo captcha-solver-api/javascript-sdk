@@ -11,7 +11,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { ApiError, CaptchaClient, NetworkError, Tasks, TimeoutError, ValidationError } from 'captcha-sdk';
+import { ApiError, CaptchaClient, NetworkError, Tasks, TimeoutError, ValidationError } from '@captcha-solver-api/javascript-sdk';
 
 describe('CaptchaClient (sync-style)', () => {
   let client;

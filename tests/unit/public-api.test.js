@@ -10,9 +10,9 @@
 
 import fs from 'node:fs';
 
-import * as pkg from 'captcha-sdk';
-import * as tasksEntry from 'captcha-sdk/tasks';
-import * as exceptionsEntry from 'captcha-sdk/exceptions';
+import * as pkg from '@captcha-solver-api/javascript-sdk';
+import * as tasksEntry from '@captcha-solver-api/javascript-sdk/tasks';
+import * as exceptionsEntry from '@captcha-solver-api/javascript-sdk/exceptions';
 
 const TASK_CLASSES = [
   'BaseTask',
@@ -42,7 +42,7 @@ const ERROR_CLASSES = [
   'ValidationError'
 ];
 
-describe('main entry point ("captcha-sdk")', () => {
+describe('main entry point ("@captcha-solver-api/javascript-sdk")', () => {
   test('exposes the client, the task namespace and every error class', () => {
     expect(typeof pkg.CaptchaClient).toBe('function');
     expect(typeof pkg.Tasks).toBe('object');
@@ -68,13 +68,13 @@ describe('main entry point ("captcha-sdk")', () => {
 });
 
 describe('subpath entry points', () => {
-  test('"captcha-sdk/tasks" exposes every task class', () => {
+  test('"@captcha-solver-api/javascript-sdk/tasks" exposes every task class', () => {
     for (const name of TASK_CLASSES) {
       expect(typeof tasksEntry[name]).toBe('function');
     }
   });
 
-  test('"captcha-sdk/exceptions" exposes every error class', () => {
+  test('"@captcha-solver-api/javascript-sdk/exceptions" exposes every error class', () => {
     for (const name of ERROR_CLASSES) {
       expect(typeof exceptionsEntry[name]).toBe('function');
     }
@@ -94,6 +94,6 @@ describe('module privacy', () => {
   test('internal modules are not reachable as subpaths', async () => {
     // Only ".", "./tasks" and "./exceptions" are declared in "exports";
     // ./client must stay private even though the file exists.
-    await expect(import('captcha-sdk/client')).rejects.toThrow();
+    await expect(import('@captcha-solver-api/javascript-sdk/client')).rejects.toThrow();
   });
 });
