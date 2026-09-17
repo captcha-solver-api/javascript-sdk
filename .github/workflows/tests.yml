@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    # Ночной прогон integration-тестов против реального API
+    # Nightly run of the integration tests against the real API
     - cron: '0 3 * * *'
   workflow_dispatch:
 
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Соответствует engines.node: ">=18" в package.json
+        # Matches engines.node: ">=18" in package.json
         node-version: [18, 20, 22]
 
     steps:
@@ -32,13 +32,15 @@ jobs:
       - name: Run unit tests with coverage
         run: npm run test:unit -- --coverage
 
-      # Покрытие выгружается один раз, а не с каждой версии Node --
-      # цифра от версии не зависит, дубли только зашумят отчёт.
+      # Coverage is uploaded once, not per Node version -- the figure
+      # doesn't depend on the version, and duplicates would only clutter
+      # the report.
       #
-      # fail-on-error: false -- выгрузка покрытия вспомогательная, и её сбой
-      # не должен красить джоб, в котором все тесты прошли. Иначе недоступность
-      # Coveralls или неподключённый репозиторий блокируют мёрж рабочего PR.
-      # Устаревший бейдж заметен и сам по себе.
+      # fail-on-error: false -- the coverage upload is a secondary step, and
+      # its failure shouldn't turn a job red when all tests passed. Otherwise
+      # Coveralls being down or the repo not being connected would block
+      # merging an otherwise working PR. A stale badge is noticeable on its
+      # own anyway.
       - name: Upload coverage to Coveralls
         if: matrix.node-version == 20
         uses: coverallsapp/github-action@v2
@@ -49,9 +51,10 @@ jobs:
 
   integration:
     name: Integration (real API)
-    # Только по расписанию и вручную. На pull_request не запускается намеренно:
-    # тесты тратят реальный баланс аккаунта, а в PR из форков секрет всё равно
-    # недоступен -- тесты молча пропустятся и дадут ложно-зелёный результат.
+    # Only on schedule and manual dispatch. Deliberately not run on
+    # pull_request: the tests spend real account balance, and secrets are
+    # unavailable in PRs from forks anyway -- the tests would silently skip
+    # and produce a false-green result.
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
@@ -66,8 +69,8 @@ jobs:
       - run: npm ci
 
       - name: Fail early if the API key is missing
-        # Без ключа integration-тесты пропускают сами себя и джоб зеленеет,
-        # ничего не проверив. Лучше упасть явно.
+        # Without a key the integration tests skip themselves and the job
+        # goes green having checked nothing. Better to fail explicitly.
         env:
           CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
         run: |

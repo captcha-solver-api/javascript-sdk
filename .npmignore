@@ -1,37 +1,38 @@
-# Что попадает в публикуемый пакет, в первую очередь определяет поле
-# "files": ["src/"] в package.json -- это белый список, и он имеет приоритет
-# над этим файлом. Здесь -- второй рубеж на случай, если "files" уберут или
-# расширят: тогда лишнее не утечёт в тарбол молча.
+# What ends up in the published package is primarily controlled by the
+# "files": ["src/"] field in package.json -- that's an allowlist and takes
+# precedence over this file. This file is a second line of defense in case
+# "files" is ever removed or broadened: nothing extra leaks into the tarball
+# silently.
 #
-# Важно: пока этот файл существует, npm НЕ использует .gitignore при упаковке.
-# Поэтому всё, что не должно публиковаться, нужно перечислять именно здесь,
-# даже если оно уже есть в .gitignore.
+# Important: as long as this file exists, npm does NOT fall back to
+# .gitignore when packing. So anything that shouldn't be published must be
+# listed here explicitly, even if it's already in .gitignore.
 #
-# Синтаксис -- как в .gitignore. Префикс "./" не работает: писать "tests",
-# а не "./tests".
+# Syntax is the same as .gitignore. The "./" prefix doesn't work: use
+# "tests", not "./tests".
 
-# Тесты и их конфигурация
+# Tests and their configuration
 tests/
 jest.config.js
 coverage/
 
-# CI и локальные настройки инструментов
+# CI and local tooling configuration
 .github/
 .claude/
 
-# Примеры и ассеты репозитория: нужны на GitHub, но не потребителю пакета
+# Repo examples and assets: useful on GitHub, not needed by package consumers
 examples/
 assets/
 
-# Переменные окружения
+# Environment variables
 .env
 .env.example
 
-# Документы для контрибьюторов: место им на GitHub, а не в тарболе
+# Contributor docs: belong on GitHub, not in the tarball
 CONTRIBUTING.md
 CODE_OF_CONDUCT.md
 todo.md
 
-# npm и так всегда включает package.json, README, LICENSE и файл из "main",
-# и всегда исключает .git, node_modules, .npmrc и npm-debug.log --
-# перечислять их здесь не нужно.
+# npm already always includes package.json, README, LICENSE and the "main"
+# entry file, and always excludes .git, node_modules, .npmrc and
+# npm-debug.log -- no need to list them here.

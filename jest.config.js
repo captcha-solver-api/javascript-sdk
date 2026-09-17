@@ -1,18 +1,19 @@
 /**
- * Jest-конфигурация. Файл в ESM-синтаксисе, потому что в package.json
- * задано "type": "module".
+ * Jest configuration. Written in ESM syntax because package.json sets
+ * "type": "module".
  *
- * Запуск требует флага --experimental-vm-modules (см. скрипты в package.json).
+ * Requires the --experimental-vm-modules flag to run (see the scripts in
+ * package.json).
  */
 
 export default {
   testEnvironment: 'node',
 
-  // Считать покрытие по всем файлам src/, а не только по тем, которые
-  // импортированы из тестов. Иначе новый файл, который никто не подключил,
-  // молча выпадет из отчёта вместо того, чтобы показать 0%.
+  // Collect coverage from every file in src/, not just the ones imported
+  // by tests. Otherwise a new file that nothing imports yet would silently
+  // drop out of the report instead of showing up as 0%.
   collectCoverageFrom: ['dist/**/*.js'],
 
-  // text -- для вывода в консоль, lcov -- для выгрузки в Coveralls.
+  // text -- console output, lcov -- for uploading to Coveralls.
   coverageReporters: ['text', 'lcov']
 };

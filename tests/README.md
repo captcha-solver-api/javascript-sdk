@@ -28,32 +28,32 @@ The top level splits tests by **type**, the nested level by **calling style**:
 
 ```
 tests/
-в”њв”Ђв”Ђ unit/                     # no network, fetch is mocked, no key needed
-в”‚   в”њв”Ђв”Ђ public-api.test.js    # contract of the package's public entry points
-в”‚   в”њв”Ђв”Ђ sync/                 # promise-chain style (.then/.catch)
-в”‚   в”‚   в”њв”Ђв”Ђ client.test.js
-в”‚   в”‚   в”њв”Ђв”Ђ coordinates.test.js
-в”‚   в”‚   в”њв”Ђв”Ђ geetest.test.js
-в”‚   в”‚   в”њв”Ђв”Ђ image_to_text.test.js
-в”‚   в”‚   в”њв”Ђв”Ђ recaptcha_v2.test.js
-в”‚   в”‚   в”њв”Ђв”Ђ recaptcha_v2_enterprise.test.js
-в”‚   в”‚   в”њв”Ђв”Ђ recaptcha_v3.test.js
-в”‚   в”‚   в”њв”Ђв”Ђ tencent.test.js
-в”‚   в”‚   в”њв”Ђв”Ђ turnstile.test.js
-в”‚   в”‚   в””в”Ђв”Ђ yandex_smartcaptcha.test.js
-в”‚   в””в”Ђв”Ђ async/                # the same scenarios in async/await style
-в”‚       в””в”Ђв”Ђ (the same 10 files)
-в””в”Ђв”Ђ integration/              # against the real API (needs a key, spends balance)
-    в”њв”Ђв”Ђ helpers.js            # shared guard and client factory (not a test)
-    в”њв”Ђв”Ђ balance.test.js       # free check: balance
-    в”њв”Ђв”Ђ image_to_text.test.js # paid checks: real solve(), one file per type
-    в”њв”Ђв”Ђ coordinates.test.js
-    в”њв”Ђв”Ђ recaptcha_v2.test.js
-    в”њв”Ђв”Ђ recaptcha_v3.test.js
-    в”њв”Ђв”Ђ turnstile.test.js
-    в”њв”Ђв”Ђ geetest_v4.test.js
-    в”њв”Ђв”Ђ yandex_smartcaptcha.test.js
-    в””в”Ђв”Ђ tencent.test.js
+├── unit/                     # no network, fetch is mocked, no key needed
+│   ├── public-api.test.js    # contract of the package's public entry points
+│   ├── sync/                 # promise-chain style (.then/.catch)
+│   │   ├── client.test.js
+│   │   ├── coordinates.test.js
+│   │   ├── geetest.test.js
+│   │   ├── image_to_text.test.js
+│   │   ├── recaptcha_v2.test.js
+│   │   ├── recaptcha_v2_enterprise.test.js
+│   │   ├── recaptcha_v3.test.js
+│   │   ├── tencent.test.js
+│   │   ├── turnstile.test.js
+│   │   └── yandex_smartcaptcha.test.js
+│   └── async/                # the same scenarios in async/await style
+│       └── (the same 10 files)
+└── integration/              # against the real API (needs a key, spends balance)
+    ├── helpers.js            # shared guard and client factory (not a test)
+    ├── balance.test.js       # free check: balance
+    ├── image_to_text.test.js # paid checks: real solve(), one file per type
+    ├── coordinates.test.js
+    ├── recaptcha_v2.test.js
+    ├── recaptcha_v3.test.js
+    ├── turnstile.test.js
+    ├── geetest_v4.test.js
+    ├── yandex_smartcaptcha.test.js
+    └── tencent.test.js
 ```
 
 The runner is Jest 29 in ESM mode (`node --experimental-vm-modules`), configured in [jest.config.js](../jest.config.js) at the project root. The default `testMatch` is used, so any `*.test.js` file is picked up. Suites are selected by directory path (`jest tests/unit` / `jest tests/integration`), so a new file needs no configuration — its location alone puts it in the right set.
@@ -116,7 +116,7 @@ That is why the files under `async/` are noticeably shorter: they only hold `sol
 | `solve polls until status is ready and returns solution` | `solve()` polls the API until `status: 'ready'` and returns the `solution` |
 | `throws TimeoutError when timeout exceeded` | exceeding `timeout` raises `TimeoutError` |
 | `throws ApiError when a task fails during polling` | an error arriving **during polling** turns into `ApiError` |
-| `throws ApiError when errorId is not zero` | a non-zero `errorId` in the response в†’ `ApiError` |
+| `throws ApiError when errorId is not zero` | a non-zero `errorId` in the response → `ApiError` |
 | `ApiError carries the string errorCode, not the numeric errorId` | `error.errorCode` holds the string code (`ERROR_KEY_DOES_NOT_EXIST`), not a number |
 | `throws NetworkError on fetch failure` | a `fetch` failure is wrapped in `NetworkError` |
 
@@ -206,7 +206,7 @@ The tests deliberately have no fixtures directory of their own: the very same im
 
 In `coordinates.test.js` the image bounds are not hard-coded: width and height are read from the PNG's own IHDR chunk, so the "point lies inside the image" assertion stays correct even if the sample is swapped out.
 
-The image used to be passed through an `IMAGE_TO_TEXT_BASE64` variable in `.env.example`. The string there was valid, but it encoded a 26Г—26 pixel image — there was nothing in it to recognise, and the test failed reliably with `ERROR_CAPTCHA_UNSOLVABLE`. The variable is gone.
+The image used to be passed through an `IMAGE_TO_TEXT_BASE64` variable in `.env.example`. The string there was valid, but it encoded a 26×26 pixel image — there was nothing in it to recognise, and the test failed reliably with `ERROR_CAPTCHA_UNSOLVABLE`. The variable is gone.
 
 ### What is not covered here
 
