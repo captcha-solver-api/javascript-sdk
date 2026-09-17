@@ -21,6 +21,7 @@ const TASK_CLASSES = [
   'RecaptchaV2',
   'RecaptchaV2EnterpriseProxyless',
   'RecaptchaV2Enterprise',
+  'RecaptchaV3Proxyless',
   'TurnstileProxyless',
   'Turnstile',
   'GeeTestProxyless',

@@ -48,6 +48,12 @@ export class RecaptchaV2Enterprise extends BaseTask {
   }
 }
 
+export class RecaptchaV3Proxyless extends BaseTask {
+  constructor({ websiteURL, websiteKey, minScore, pageAction = null, isEnterprise = null, apiDomain = null }) {
+    super({ type: 'RecaptchaV3TaskProxyless', websiteURL, websiteKey, minScore, pageAction, isEnterprise, apiDomain });
+  }
+}
+
 
 export class TurnstileProxyless extends BaseTask {
   constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null }) {

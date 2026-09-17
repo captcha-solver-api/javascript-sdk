@@ -255,6 +255,26 @@ console.log(result.gRecaptchaResponse);
 With proxy, use `Tasks.RecaptchaV2Enterprise` (same proxy fields as reCAPTCHA v2).
 
 
+### reCAPTCHA v3
+
+Use `Tasks.RecaptchaV3Proxyless` for score-based reCAPTCHA v3. The API supports
+this task only without a customer proxy.
+
+```javascript
+import { CaptchaClient, Tasks } from 'captcha-sdk';
+
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
+const task = new Tasks.RecaptchaV3Proxyless({
+  websiteURL: 'https://example.com/login',
+  websiteKey: 'YOUR_WEBSITE_KEY',
+  minScore: 0.3,
+  pageAction: 'homepage'
+});
+
+const result = await captchaSolver.solve(task);
+console.log(result.gRecaptchaResponse);
+```
+
 ### Cloudflare Turnstile
 
 <sup>[API method description.](https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile)</sup>
