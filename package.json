@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts src/tasks.ts src/exceptions.ts --format esm,cjs --dts --clean",
+    "typecheck": "tsc --noEmit",
     "test": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:unit": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
     "test:integration": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration",

@@ -33,6 +33,7 @@ Full API reference (all endpoints, error codes, captcha-type details): **https:/
   - [Worker language pool](#worker-language-pool)
   - [Solving multiple captchas in parallel](#solving-multiple-captchas-in-parallel)
   - [Error handling](#error-handling)
+  - [TypeScript](#typescript)
 - [Running the examples](#running-the-examples)
 - [Requirements](#requirements)
 - [API Documentation](#api-documentation)
@@ -582,6 +583,35 @@ try {
   }
 }
 ```
+
+### TypeScript
+
+The package ships its own type declarations, so no `@types/*` install is needed.
+Every task constructor takes a typed options object, and `solve()` infers the
+solution type from the task class:
+
+```typescript
+import { CaptchaClient, Tasks } from 'captcha-sdk';
+import type { TurnstileSolution } from 'captcha-sdk';
+
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
+
+const result = await captchaSolver.solve(new Tasks.TurnstileProxyless({
+  websiteURL: 'https://example.com/login',
+  websiteKey: 'YOUR_WEBSITE_KEY'
+}));
+result.token;      // string
+result.userAgent;  // string
+
+// The same shape is exported by name if you need to pass it around.
+const stored: TurnstileSolution = result;
+```
+
+Parameter types (`RecaptchaV2Params`, `GeeTestProxylessParams`, ...) and solution
+types (`RecaptchaSolution`, `GeeTestSolution`, ...) are exported from the package
+root. `GenericTask` resolves to a plain `Record<string, unknown>`. Every public
+class, method and field carries JSDoc, so hover documentation in the editor
+matches this README.
 
 ## Running the examples
 
