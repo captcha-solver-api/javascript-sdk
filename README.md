@@ -20,6 +20,7 @@ Full API reference (all endpoints, error codes, captcha-type details): **https:/
 - [Captcha Types](#captcha-types)
   - [reCAPTCHA v2](#recaptcha-v2)
   - [reCAPTCHA v2 Enterprise](#recaptcha-v2-enterprise)
+  - [reCAPTCHA v3](#recaptcha-v3)
   - [Cloudflare Turnstile](#cloudflare-turnstile)
   - [Image to Text](#image-to-text)
   - [GeeTest (v3 & v4)](#geetest-v3--v4)
@@ -89,6 +90,7 @@ the same `CaptchaClient`, since JavaScript has no blocking HTTP client to mirror
 |---|---|---|
 | reCAPTCHA v2 | ✅ | ✅ |
 | reCAPTCHA v2 Enterprise | ✅ | ✅ |
+| reCAPTCHA v3 | ✅ | ❌ |
 | Cloudflare Turnstile | ✅ | ✅ |
 | GeeTest v3 | ✅ | ✅ |
 | GeeTest v4 | ✅ | ✅ |
@@ -257,8 +259,21 @@ With proxy, use `Tasks.RecaptchaV2Enterprise` (same proxy fields as reCAPTCHA v2
 
 ### reCAPTCHA v3
 
+<sup>[API method description.](https://captcha-solver.com/en/docs/captcha-types#recaptcha-v3)</sup>
+
 Use `Tasks.RecaptchaV3Proxyless` for score-based reCAPTCHA v3. The API supports
 this task only without a customer proxy.
+
+| Field | Required | Description |
+|---|---|---|
+| `websiteURL` | yes | Full URL of the page where the captcha is located. |
+| `websiteKey` | yes | Site key for the reCAPTCHA v3 widget. |
+| `minScore` | yes | Minimum token score, for example `0.3`, `0.7`, or `0.9`. |
+| `pageAction` | no | Action passed to `grecaptcha.execute()` on the page. |
+| `isEnterprise` | no | Set to `true` for reCAPTCHA v3 Enterprise. |
+| `apiDomain` | no | Alternative domain used to load the reCAPTCHA script. |
+
+**Response:** `gRecaptchaResponse`.
 
 ```javascript
 import { CaptchaClient, Tasks } from 'captcha-sdk';
