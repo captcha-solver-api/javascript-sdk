@@ -61,7 +61,7 @@ The reference file for the proxyless/with-proxy pattern most other examples repe
 `RecaptchaV2Proxyless` solves through the service's own IPs; `RecaptchaV2` adds `proxyType`,
 `proxyAddress`, `proxyPort`, `proxyLogin` and `proxyPassword`. The client constructor is annotated
 with the two optional settings — `timeout` (default 120000 ms) and `pollingInterval` (default
-2000 ms) — and the task shows `isInvisible` for invisible widgets. Solution: `gRecaptchaResponse`.
+5000 ms) — and the task shows `isInvisible` for invisible widgets. Solution: `gRecaptchaResponse`.
 
 ### recaptcha_v2_enterprise.js
 
