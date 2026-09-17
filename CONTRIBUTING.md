@@ -10,7 +10,7 @@ Here are a few guidelines to help you get started.
    If you'd like to contribute, please start by forking the project and cloning it to your local machine.
 
    ```bash
-   git clone https://github.com/captcha-solver-api/javascript-sdk-old
+   git clone https://github.com/captcha-solver-api/javascript-sdk
    ```
 
 2. **Create a new branch**

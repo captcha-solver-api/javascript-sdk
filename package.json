@@ -56,12 +56,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/captcha-solver-api/javascript-sdk-old"
+    "url": "https://github.com/captcha-solver-api/javascript-sdk"
   },
   "bugs": {
-    "url": "https://github.com/captcha-solver-api/javascript-sdk-old/issues"
+    "url": "https://github.com/captcha-solver-api/javascript-sdk/issues"
   },
-  "homepage": "https://github.com/captcha-solver-api/javascript-sdk-old#readme",
+  "homepage": "https://github.com/captcha-solver-api/javascript-sdk#readme",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "overrides": {
