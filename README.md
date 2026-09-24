@@ -1,5 +1,11 @@
 # Captcha Solver JavaScript SDK
 
+[![npm version](https://img.shields.io/npm/v/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
+[![tests](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml/badge.svg)](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml)
+[![Node.js](https://img.shields.io/node/v/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
+[![npm downloads](https://img.shields.io/npm/dm/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
+[![license](https://img.shields.io/npm/l/%40captcha-solver-api%2Fjavascript-sdk)](LICENSE.md)
+
 ![js-examples-banner](assets/repo-banner-javascript.png)
 
 
