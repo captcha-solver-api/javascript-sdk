@@ -1,13 +1,16 @@
 # Captcha Solver JavaScript SDK
 
+![javascript-sdk-banner](assets/repo-banner-javascript.png)
+
 [![npm version](https://img.shields.io/npm/v/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
 [![tests](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml/badge.svg)](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml)
+[![Coverage Status](https://coveralls.io/repos/github/captcha-solver-api/javascript-sdk/badge.svg?branch=main)](https://coveralls.io/github/captcha-solver-api/javascript-sdk?branch=main)
 [![Node.js](https://img.shields.io/node/v/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
 [![npm downloads](https://img.shields.io/npm/dm/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
+[![TypeScript](https://img.shields.io/badge/TypeScript-typed-3178c6?logo=typescript&logoColor=white)](https://github.com/captcha-solver-api/javascript-sdk/tree/main/src)
 [![license](https://img.shields.io/npm/l/%40captcha-solver-api%2Fjavascript-sdk)](LICENSE.md)
-
-![js-examples-banner](assets/repo-banner-javascript.png)
-
+[![GitHub Release](https://img.shields.io/github/v/release/captcha-solver-api/javascript-sdk)](https://github.com/captcha-solver-api/javascript-sdk/releases)
+[![Python SDK](https://img.shields.io/badge/also_available-Python_SDK-3776ab?logo=python&logoColor=white)](https://github.com/captcha-solver-api/python-sdk)
 
 Full API reference (all endpoints, error codes, captcha-type details): **https://captcha-solver.com/en/docs/captcha-types**
 
