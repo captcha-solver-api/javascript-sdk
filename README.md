@@ -3,7 +3,7 @@
 ![javascript-sdk-banner](assets/repo-banner-javascript.png)
 
 [![npm version](https://img.shields.io/npm/v/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
-[![tests](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml/badge.svg)](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml)
+[![tests](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml/badge.svg?branch=main&event=push)](https://github.com/captcha-solver-api/javascript-sdk/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/captcha-solver-api/javascript-sdk/badge.svg?branch=main)](https://coveralls.io/github/captcha-solver-api/javascript-sdk?branch=main)
 [![Node.js](https://img.shields.io/node/v/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
 [![npm downloads](https://img.shields.io/npm/dm/%40captcha-solver-api%2Fjavascript-sdk)](https://www.npmjs.com/package/@captcha-solver-api/javascript-sdk)
