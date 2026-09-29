@@ -340,6 +340,11 @@ export interface TurnstileProxylessParams {
    * the API does not accept `pageData`.
    */
   pagedata?: string | null;
+  /**
+   * User-Agent of the browser that loaded the challenge. Pass it for
+   * Cloudflare Challenge pages; it is not needed for a standalone widget.
+   */
+  userAgent?: string | null;
 }
 
 /** Parameters of {@link Turnstile}. */
@@ -347,14 +352,13 @@ export interface TurnstileParams extends TurnstileProxylessParams, ProxyParams {
 
 /**
  * Cloudflare Turnstile without a proxy (`TurnstileTaskProxyless`).
- * There is no `userAgent` input: the worker picks one and returns it in the solution.
  * Solution: {@link TurnstileSolution}.
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile
  */
 export class TurnstileProxyless extends BaseTask<TurnstileSolution> {
-  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null }: TurnstileProxylessParams) {
-    super({ type: 'TurnstileTaskProxyless', websiteURL, websiteKey, action, data, pagedata });
+  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null }: TurnstileProxylessParams) {
+    super({ type: 'TurnstileTaskProxyless', websiteURL, websiteKey, action, data, pagedata, userAgent });
   }
 }
 
@@ -365,8 +369,8 @@ export class TurnstileProxyless extends BaseTask<TurnstileSolution> {
  * @see https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile
  */
 export class Turnstile extends BaseTask<TurnstileSolution> {
-  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null }: TurnstileParams) {
-    super({ type: 'TurnstileTask', websiteURL, websiteKey, action, data, pagedata, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword });
+  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null }: TurnstileParams) {
+    super({ type: 'TurnstileTask', websiteURL, websiteKey, action, data, pagedata, userAgent, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword });
   }
 }
 
