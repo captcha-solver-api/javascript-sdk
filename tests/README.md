@@ -135,7 +135,7 @@ Common to every type's serialization:
 | `recaptcha_v2.test.js` | 6 / 1 | the field names `recaptchaDataSValue` and `apiDomain` (not `dataSValue`); `isInvisible`, `userAgent`; proxy variant. `solve()` goes through an intermediate `status: 'processing'` — exactly 3 requests |
 | `recaptcha_v2_enterprise.test.js` | 4 / 1 | `enterprisePayload` as an object, `isInvisible`; an exact `toDict()` match for the minimal field set |
 | `recaptcha_v3.test.js` | 4 / 1 | `minScore` is required — without it the constructor throws `ValidationError`; `pageAction`, `apiDomain` |
-| `turnstile.test.js` | 5 / 1 | the field names `data` and `pagedata` (not `cData` or `pageData` -- `pagedata` is the one field on this type the real API takes lowercase); `userAgent` is rejected as input entirely -- it's response-only on this type |
+| `turnstile.test.js` | 5 / 1 | the field names `data` and `pagedata` (not `cData` or `pageData` -- `pagedata` is the one field on this type the real API takes lowercase); browser `userAgent` support for Cloudflare Challenge pages; proxy variant |
 | `geetest.test.js` | 7 / 2 | v3: `gt` + `challenge`, no `version` field. v4: `version: 4` + `initParameters`. Plus `geetestApiServerSubdomain` and `risk_type` (never `cookies` -- not a real field on this type). `solve()` is tested separately for v3 and v4 — their solution shapes differ |
 | `yandex_smartcaptcha.test.js` | 4 / 1 | `userAgent`, `cookies`; proxy variant |
 | `tencent.test.js` | 4 / 1 | `appId`, optional `captchaScript` |
