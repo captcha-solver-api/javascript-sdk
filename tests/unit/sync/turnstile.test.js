@@ -36,7 +36,7 @@ describe('TurnstileProxyless', () => {
     expect(result.pageData).toBeUndefined();
   });
 
-  test('does not accept userAgent as input -- the API only returns it in the solution', () => {
+  test('includes the browser userAgent for Cloudflare Challenge pages', () => {
     const task = new Tasks.TurnstileProxyless({
       websiteURL: 'https://example.com',
       websiteKey: 'test_key',
@@ -44,7 +44,7 @@ describe('TurnstileProxyless', () => {
     });
 
     const result = task.toDict();
-    expect(result.userAgent).toBeUndefined();
+    expect(result.userAgent).toBe('Mozilla/5.0');
   });
 });
 
@@ -55,13 +55,15 @@ describe('Turnstile with proxy', () => {
       websiteKey: 'test_key',
       proxyType: 'http',
       proxyAddress: '1.2.3.4',
-      proxyPort: 8080
+      proxyPort: 8080,
+      userAgent: 'Mozilla/5.0'
     });
 
     const result = task.toDict();
     expect(result.type).toBe('TurnstileTask');
     expect(result.proxyType).toBe('http');
     expect(result.proxyAddress).toBe('1.2.3.4');
+    expect(result.userAgent).toBe('Mozilla/5.0');
   });
 });
 
