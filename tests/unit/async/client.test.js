@@ -35,7 +35,7 @@ describe('CaptchaClient (async)', () => {
     });
 
     await client.getBalance();
-    expect(requestOptions.headers['X-SDK']).toBe('javascript-sdk/1.0.0');
+    expect(requestOptions.headers['X-SDK']).toBe('javascript-sdk/1.0.1');
   });
 
   test('aborts an HTTP request after timeout', async () => {
