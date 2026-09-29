@@ -317,13 +317,12 @@ that the target page expects in `cf-turnstile-response`.
 | `action` | no | Value of the widget's `data-action` attribute, if set. |
 | `data` | no | Custom payload from the widget's `data-cdata` attribute, if set. |
 | `pagedata` | no | Value of the `chlPageData` parameter, needed for some Cloudflare challenge pages beyond the basic widget. Note the lowercase, single-word spelling -- unlike every other field on this page, the real API does not accept `pageData`. |
+| `userAgent` | no | Current browser User-Agent. Pass it for Cloudflare Challenge pages; it is not needed for a standalone widget. |
 
-There's no `userAgent` input for this type -- the worker picks its own while solving
-and returns it in the response instead (see below).
-
-**Response:** `token` -- submit as `cf-turnstile-response` -- and `userAgent`, the User-Agent the
-worker actually solved with. The token is tied to that fingerprint, so submit it with that exact
-User-Agent, not one you chose yourself.
+**Response:** `token` -- submit as `cf-turnstile-response`. For Cloudflare Challenge
+pages, pass `action`, `data`, `pagedata`, and the current browser `userAgent` in the
+task. Keep the browser User-Agent unchanged when invoking the callback. The solution
+may also contain `userAgent`; do not switch the browser to this returned value.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';

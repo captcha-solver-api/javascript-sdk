@@ -36,7 +36,7 @@ describe('TurnstileProxyless', () => {
     expect(result.pageData).toBeUndefined();
   });
 
-  test('does not accept userAgent as input -- the API only returns it in the solution', () => {
+  test('includes the browser userAgent for a Cloudflare Challenge', () => {
     const task = new Tasks.TurnstileProxyless({
       websiteURL: 'https://example.com',
       websiteKey: 'test_key',
@@ -44,7 +44,7 @@ describe('TurnstileProxyless', () => {
     });
 
     const result = task.toDict();
-    expect(result.userAgent).toBeUndefined();
+    expect(result.userAgent).toBe('Mozilla/5.0');
   });
 });
 
