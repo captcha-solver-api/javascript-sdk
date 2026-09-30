@@ -663,6 +663,7 @@ Full API reference: https://captcha-solver.com/en/docs/captcha-types
 
 ## Useful Links
 
+- [Cloudflare Turnstile Puppeteer Demo](https://github.com/captcha-solver-api/cloudflare-turnstile-puppeteer-demo) — a working browser automation example for Cloudflare Turnstile.
 - [How to Automate Tencent CAPTCHA](https://captcha-solver.com/en/blog/how-to-automate-tencent-captcha) — a step-by-step guide with Python and JavaScript SDK examples.
 
 ## License
