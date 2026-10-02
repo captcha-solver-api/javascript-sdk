@@ -663,7 +663,11 @@ Full API reference: https://captcha-solver.com/en/docs/captcha-types
 
 ## Useful Links
 
+- [Python SDK](https://github.com/captcha-solver-api/python-sdk)
+- [Python examples](https://github.com/captcha-solver-api/python-examples)
+- [JavaScript examples](https://github.com/captcha-solver-api/javascript-examples)
 - [Cloudflare Turnstile Puppeteer Demo](https://github.com/captcha-solver-api/cloudflare-turnstile-puppeteer-demo) — a working browser automation example for Cloudflare Turnstile.
+- [Tencent CAPTCHA automation examples](https://github.com/captcha-solver-api/How-to-Automate-Tencent-CAPTCHA)
 - [How to Automate Tencent CAPTCHA](https://captcha-solver.com/en/blog/how-to-automate-tencent-captcha) — a step-by-step guide with Python and JavaScript SDK examples.
 
 ## License
