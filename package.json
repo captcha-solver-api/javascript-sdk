@@ -62,7 +62,7 @@
   "bugs": {
     "url": "https://github.com/captcha-solver-api/javascript-sdk/issues"
   },
-  "homepage": "https://github.com/captcha-solver-api/javascript-sdk#readme",
+  "homepage": "https://captcha-solver.com",
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "overrides": {
