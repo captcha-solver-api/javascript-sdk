@@ -231,7 +231,9 @@ Choose the proxy variant when the solving session must use your own IP address.
 | `userAgent` | no | User-Agent to solve with. Recommended to match the agent submitting the token. |
 | `cookies` | no | Session cookies to use while solving, if the page requires them. |
 
-**Response:** `gRecaptchaResponse` -- submit as `g-recaptcha-response`.
+**Response fields**
+
+- `gRecaptchaResponse` — submit this token as `g-recaptcha-response`.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -273,7 +275,9 @@ as reCAPTCHA v2, plus:
 | `enterprisePayload` | no | Extra parameters passed to `grecaptcha.enterprise.render` on the page, e.g. `{ s: '...' }`. |
 | `apiDomain` | no | Defaults to `google.com`. |
 
-**Response:** `gRecaptchaResponse`.
+**Response fields**
+
+- `gRecaptchaResponse` — submit this token to the Enterprise reCAPTCHA callback.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -305,7 +309,9 @@ this task only without a customer proxy.
 | `isEnterprise` | no | Set to `true` for reCAPTCHA v3 Enterprise. |
 | `apiDomain` | no | Alternative domain used to load the reCAPTCHA script. |
 
-**Response:** `gRecaptchaResponse`.
+**Response fields**
+
+- `gRecaptchaResponse` — submit this token to the reCAPTCHA v3 callback.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -340,10 +346,15 @@ that the target page expects in `cf-turnstile-response`.
 | `pagedata` | no | Value of the `chlPageData` parameter, needed for some Cloudflare challenge pages beyond the basic widget. Note the lowercase, single-word spelling -- unlike every other field on this page, the real API does not accept `pageData`. |
 | `userAgent` | no | Current browser User-Agent. Pass it for Cloudflare Challenge pages; it is not needed for a standalone widget. |
 
-**Response:** `token` -- submit as `cf-turnstile-response`. For Cloudflare Challenge
-pages, pass `action`, `data`, `pagedata`, and the current browser `userAgent` in the
-task. Keep the browser User-Agent unchanged when invoking the callback. The solution
-may also contain `userAgent`; do not switch the browser to this returned value.
+**Response fields**
+
+- `token` — submit this value as `cf-turnstile-response`.
+- `userAgent` — the User-Agent reported by the solving service, when present.
+
+> **Important:** For Cloudflare Challenge pages, pass `action`, `data`,
+> `pagedata`, and the current browser `userAgent` in the task. Keep that browser
+> User-Agent unchanged when invoking the callback; do not switch it to the
+> returned value.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -379,7 +390,9 @@ browser session involved.
 | `comment` | no | Free-text hint for the worker. |
 | `imgInstructions` | no | Optional supplementary instruction image, base64-encoded. |
 
-**Response:** `text` -- the recognized text/answer.
+**Response fields**
+
+- `text` — the recognized text or calculated answer.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -417,7 +430,14 @@ pass the values collected from the target page before creating the task.
 | `userAgent` | no | User-Agent to solve with. |
 | `risk_type` | no | Dynamic, single-use value included in the page's captcha-loading request, if present. Note the snake_case name -- unlike every other field here, the real API does not accept `riskType`. |
 
-**Response:** v3 -- `challenge`, `validate`, `seccode`. v4 -- `captcha_id`, `lot_number`, `pass_token`, `gen_time`, `captcha_output`.
+**Response fields**
+
+- GeeTest v3: `challenge`, `validate`, and `seccode`.
+- GeeTest v4: `captcha_id`, `lot_number`, `pass_token`, `gen_time`, and
+  `captcha_output`.
+
+> **Important:** Fetch a fresh v3 `challenge` for every task. Do not reuse a
+> challenge value from an earlier request.
 Docs: [v3 ↗](https://captcha-solver.com/en/docs/captcha-types#geetest-v3), [v4 ↗](https://captcha-solver.com/en/docs/captcha-types#geetest-v4)
 
 ```javascript
@@ -468,7 +488,9 @@ challenge. For the image challenge instead, use `Tasks.CoordinatesTask` with
 Proxy variant note: `proxyType` also accepts `'https'` for this captcha type only
 (in addition to `http`/`socks4`/`socks5`).
 
-**Response:** `token`.
+**Response fields**
+
+- `token` — submit this value to the SmartCaptcha callback.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -501,7 +523,9 @@ directly.
 | `minClicks` | no | Minimum number of clicks expected (default `1`). |
 | `maxClicks` | no | Maximum number of clicks allowed. |
 
-**Response:** `coordinates` -- an array of `{ x, y }` pixel positions to click, in order.
+**Response fields**
+
+- `coordinates` — an ordered array of `{ x, y }` pixel positions to click.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -533,7 +557,14 @@ values required by the target page.
 | `appId` | yes | Value of the `appId` parameter found in the page source. |
 | `captchaScript` | no | URL of the Tencent captcha script, if the page uses a non-default one. |
 
-**Response:** `appid`, `ret`, `ticket`, `randstr` -- pass all four into the page's Tencent captcha callback.
+**Response fields**
+
+- `appid` — Tencent application ID.
+- `ret` — Tencent result code.
+- `ticket` — verification ticket.
+- `randstr` — verification nonce.
+
+Pass all four values to the page's Tencent CAPTCHA callback.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
