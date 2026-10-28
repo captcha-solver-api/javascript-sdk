@@ -13,7 +13,7 @@ import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 const apiKey = process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY';
 
 // GeeTest v4 tasks may take longer. Increase timeout if needed.
-const captchaSolver = new CaptchaClient({ clientKey: apiKey, timeout: 300000, pollingInterval: 10000 });
+const captchaSolver = new CaptchaClient({ clientKey: apiKey, timeout: 300000 });
 
 // --- Proxyless example ---
 // v4 drops gt/challenge. The widget is identified by captcha_id inside initParameters.

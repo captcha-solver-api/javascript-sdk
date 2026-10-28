@@ -104,7 +104,7 @@ That URL — `https://target-site.com/path/to/geetest/init` — is a **placehold
 not run end-to-end unmodified. It marks where the fetch belongs in the flow; point it at your real
 source of `challenge` first.
 
-The client uses `timeout: 300000` and `pollingInterval: 10000`, GeeTest being among the slowest
+The client uses `timeout: 300000`, GeeTest being among the slowest
 types. `version` is omitted since v3 is the default. Solution: `challenge`, `validate`, `seccode`.
 
 ### geetest_v4.js

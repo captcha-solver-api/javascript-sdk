@@ -114,7 +114,7 @@ the page and passed along.
 The only example that performs a **request of its own before solving**. The `challenge` value is
 session-specific and must be fresh for every task, so the script fetches one first and then builds
 the task. The fetch URL is a deliberate placeholder — see [Before you run](#before-you-run). Uses
-`timeout: 300000` and `pollingInterval: 10000`, since GeeTest is among the slowest types. `version`
+`timeout: 300000`, since GeeTest is among the slowest types. `version`
 is omitted because v3 is the default.
 
 ### GeeTest v4

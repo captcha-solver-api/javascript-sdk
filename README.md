@@ -422,7 +422,7 @@ Docs: [v3 ↗](https://captcha-solver.com/en/docs/captcha-types#geetest-v3), [v4
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
-const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key', timeout: 300000, pollingInterval: 10000 });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key', timeout: 300000 });
 const task = new Tasks.GeeTestProxyless({
   websiteURL: 'https://example.com/login',
   gt: 'f2ae6cadcf7886856696c46d84d109d1',
