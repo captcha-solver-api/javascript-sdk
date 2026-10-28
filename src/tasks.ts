@@ -1,5 +1,51 @@
 import { ValidationError } from './exceptions.js';
 
+const REQUIRED_TASK_PARAMS: Record<string, readonly string[]> = {
+  RecaptchaV2TaskProxyless: ['websiteURL', 'websiteKey'],
+  RecaptchaV2Task: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
+  RecaptchaV2EnterpriseTaskProxyless: ['websiteURL', 'websiteKey'],
+  RecaptchaV2EnterpriseTask: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
+  RecaptchaV3TaskProxyless: ['websiteURL', 'websiteKey', 'minScore'],
+  TurnstileTaskProxyless: ['websiteURL', 'websiteKey'],
+  TurnstileTask: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
+  GeeTestTaskProxyless: ['websiteURL'],
+  GeeTestTask: ['websiteURL', 'proxyType', 'proxyAddress', 'proxyPort'],
+  ImageToTextTask: ['body'],
+  YandexSmartCaptchaTaskProxyless: ['websiteURL', 'websiteKey'],
+  YandexSmartCaptchaTask: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
+  CoordinatesTask: ['body'],
+  TencentTaskProxyless: ['websiteURL', 'appId'],
+  TencentTask: ['websiteURL', 'appId', 'proxyType', 'proxyAddress', 'proxyPort']
+};
+
+function isMissing(value: unknown): boolean {
+  return value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+}
+
+function validateTaskParams(params: Record<string, unknown>): void {
+  const type = params.type;
+  if (typeof type !== 'string') return;
+
+  const required = [...(REQUIRED_TASK_PARAMS[type] || [])];
+  if (type === 'GeeTestTask' || type === 'GeeTestTaskProxyless') {
+    if (params.version === 4) {
+      required.push('initParameters');
+    } else {
+      required.push('gt', 'challenge');
+    }
+  }
+
+  const missing = required.filter((name) => isMissing(params[name]));
+  if (!missing.length && params.version === 4) {
+    const initParameters = params.initParameters as Record<string, unknown>;
+    if (isMissing(initParameters.captcha_id)) missing.push('initParameters.captcha_id');
+  }
+
+  if (missing.length) {
+    throw new ValidationError(`${type} requires: ${missing.join(', ')}`);
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Shared parameter fragments                                          */
 /* ------------------------------------------------------------------ */
@@ -134,6 +180,7 @@ export class BaseTask<TSolution extends Record<string, unknown> = Record<string,
    * @param params - Raw task parameters, including the API `type` field.
    */
   constructor(params: Record<string, unknown>) {
+    validateTaskParams(params);
     this._params = params;
   }
 
