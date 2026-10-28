@@ -164,14 +164,14 @@ Every example except `balance.js` needs something replaced first.
 
 | Example | What you must supply |
 |---|---|
-| `balance.js` | Nothing — runs as-is with a valid key |
-| `turnstile.js` | Real `websiteURL` and `websiteKey`; for Challenge pages also `action`, `data`, `pagedata` |
-| `yandex_smartcaptcha.js` | Real `websiteURL` and `websiteKey` |
-| `tencent.js` | Real `websiteURL` and `appId` |
-| `geetest_v3.js` | Real `websiteURL` and `gt`, **plus a real init endpoint** (see below) |
-| `geetest_v4.js` | Real `websiteURL` and `captcha_id` |
-| `image_to_text.js` | Nothing — all sample images ship in [assets/](assets/) |
-| `coordinates.js` | Nothing — all sample images ship in [assets/](assets/) |
+| [`balance.js`](async/balance.js) | Nothing — runs as-is with a valid key |
+| [`turnstile.js`](async/turnstile.js) | Real `websiteURL` and `websiteKey`; for Challenge pages also `action`, `data`, `pagedata` |
+| [`yandex_smartcaptcha.js`](async/yandex_smartcaptcha.js) | Real `websiteURL` and `websiteKey` |
+| [`tencent.js`](async/tencent.js) | Real `websiteURL` and `appId` |
+| [`geetest_v3.js`](async/geetest_v3.js) | Real `websiteURL` and `gt`, **plus a real init endpoint** (see below) |
+| [`geetest_v4.js`](async/geetest_v4.js) | Real `websiteURL` and `captcha_id` |
+| [`image_to_text.js`](async/image_to_text.js) | Nothing — all sample images ship in [assets/](assets/) |
+| [`coordinates.js`](async/coordinates.js) | Nothing — all sample images ship in [assets/](assets/) |
 
 **Both image examples run entirely as-is**, with a valid key and nothing else — every block,
 [assets/](assets/) and are read through `new URL('../assets/…', import.meta.url)`, which resolves
