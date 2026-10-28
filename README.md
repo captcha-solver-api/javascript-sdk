@@ -119,14 +119,17 @@ on the target page.
 |---|---|---|
 | reCAPTCHA v2 | ✅ | ✅ |
 | reCAPTCHA v2 Enterprise | ✅ | ✅ |
-| reCAPTCHA v3 | ✅ | ❌ |
+| reCAPTCHA v3 | ✅ | — |
 | Cloudflare Turnstile | ✅ | ✅ |
 | GeeTest v3 | ✅ | ✅ |
 | GeeTest v4 | ✅ | ✅ |
-| Image to Text | ✅ | ❌ |
+| Image to Text | ✅ | — |
 | Yandex SmartCaptcha | ✅ | ✅ |
-| Coordinates (click captcha) | ✅ | ❌ |
+| Coordinates (click captcha) | ✅ | — |
 | Tencent | ✅ | ✅ |
+
+`—` means that this CAPTCHA type does not have a separate proxy task method;
+the supported task is used as shown in the Proxyless column.
 
 ### Other supported API task types
 
