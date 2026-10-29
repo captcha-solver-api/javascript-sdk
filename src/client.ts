@@ -58,7 +58,9 @@ export type SolutionOf<T> = T extends BaseTask<infer S> ? S : Record<string, unk
  *   websiteURL: 'https://example.com/login',
  *   websiteKey: 'YOUR_WEBSITE_KEY'
  * });
- * const { gRecaptchaResponse } = await client.solve(task);
+ * client.solve(task)
+ *   .then(({ gRecaptchaResponse }) => console.log(gRecaptchaResponse))
+ *   .catch(console.error);
  * ```
  */
 export class CaptchaClient {
@@ -122,7 +124,9 @@ export class CaptchaClient {
    * @throws {NetworkError} On a transport failure.
    * @example
    * ```ts
-   * const taskId = await client.createTask(task);
+   * client.createTask(task)
+   *   .then((taskId) => console.log(taskId))
+   *   .catch(console.error);
    * ```
    */
   async createTask(task: BaseTask, languagePool: string | null = null): Promise<number> {
@@ -143,7 +147,9 @@ export class CaptchaClient {
    * @throws {NetworkError} On a transport failure.
    * @example
    * ```ts
-   * const result = await client.getTaskResult(taskId);
+   * client.getTaskResult(taskId)
+   *   .then(console.log)
+   *   .catch(console.error);
    * ```
    */
   getTaskResult(taskId: number): Promise<TaskResult> { return this._request('/getTaskResult', { clientKey: this.clientKey, taskId }); }
@@ -157,7 +163,9 @@ export class CaptchaClient {
    * @throws {NetworkError} On a transport failure.
    * @example
    * ```ts
-   * const balance = await client.getBalance();
+   * client.getBalance()
+   *   .then((balance) => console.log(balance))
+   *   .catch(console.error);
    * ```
    */
   async getBalance(): Promise<number> { return Number((await this._request('/getBalance', { clientKey: this.clientKey })).balance); }
