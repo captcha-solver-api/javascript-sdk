@@ -58,7 +58,9 @@ export type SolutionOf<T> = T extends BaseTask<infer S> ? S : Record<string, unk
  *   websiteURL: 'https://example.com/login',
  *   websiteKey: 'YOUR_WEBSITE_KEY'
  * });
- * const { gRecaptchaResponse } = await client.solve(task);
+ * client.solve(task)
+ *   .then(({ gRecaptchaResponse }) => console.log(gRecaptchaResponse))
+ *   .catch(console.error);
  * ```
  */
 export class CaptchaClient {
@@ -75,7 +77,7 @@ export class CaptchaClient {
    * @param options - Client options; only `clientKey` is required.
    * @throws {ValidationError} If `clientKey` is empty.
    */
-  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000 }: CaptchaClientOptions) {
+  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000 }: CaptchaClientOptions = {} as CaptchaClientOptions) {
     if (!clientKey) throw new ValidationError('clientKey is required');
     this.clientKey = clientKey; this.baseUrl = baseUrl; this.timeout = timeout; this.pollingInterval = pollingInterval;
   }
@@ -120,6 +122,12 @@ export class CaptchaClient {
    * @throws {ApiError} If the API rejected the task.
    * @throws {TimeoutError} If the request exceeded {@link timeout}.
    * @throws {NetworkError} On a transport failure.
+   * @example
+   * ```ts
+   * client.createTask(task)
+   *   .then((taskId) => console.log(taskId))
+   *   .catch(console.error);
+   * ```
    */
   async createTask(task: BaseTask, languagePool: string | null = null): Promise<number> {
     const payload: Record<string, unknown> = { clientKey: this.clientKey, task: task.toDict() }; if (languagePool !== null) payload.languagePool = languagePool;
@@ -137,6 +145,12 @@ export class CaptchaClient {
    * @throws {ApiError} If the task failed on the API side.
    * @throws {TimeoutError} If the request exceeded {@link timeout}.
    * @throws {NetworkError} On a transport failure.
+   * @example
+   * ```ts
+   * client.getTaskResult(taskId)
+   *   .then(console.log)
+   *   .catch(console.error);
+   * ```
    */
   getTaskResult(taskId: number): Promise<TaskResult> { return this._request('/getTaskResult', { clientKey: this.clientKey, taskId }); }
 
@@ -147,6 +161,12 @@ export class CaptchaClient {
    * @throws {ApiError} If the API key is invalid.
    * @throws {TimeoutError} If the request exceeded {@link timeout}.
    * @throws {NetworkError} On a transport failure.
+   * @example
+   * ```ts
+   * client.getBalance()
+   *   .then((balance) => console.log(balance))
+   *   .catch(console.error);
+   * ```
    */
   async getBalance(): Promise<number> { return Number((await this._request('/getBalance', { clientKey: this.clientKey })).balance); }
 
@@ -164,6 +184,10 @@ export class CaptchaClient {
    * @throws {TimeoutError} If no solution arrived within {@link timeout}.
    * @throws {ApiError} If the API rejected the task or the task failed while solving.
    * @throws {NetworkError} On a transport failure.
+   * @example
+   * ```ts
+   * client.solve(task).then(console.log).catch(console.error);
+   * ```
    */
   async solve<T extends BaseTask<any>>(task: T, languagePool: string | null = null): Promise<SolutionOf<T>> {
     const taskId = await this.createTask(task, languagePool); const startedAt = Date.now();

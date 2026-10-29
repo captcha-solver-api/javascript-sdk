@@ -1,5 +1,51 @@
 import { ValidationError } from './exceptions.js';
 
+const REQUIRED_TASK_PARAMS: Record<string, readonly string[]> = {
+  RecaptchaV2TaskProxyless: ['websiteURL', 'websiteKey'],
+  RecaptchaV2Task: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
+  RecaptchaV2EnterpriseTaskProxyless: ['websiteURL', 'websiteKey'],
+  RecaptchaV2EnterpriseTask: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
+  RecaptchaV3TaskProxyless: ['websiteURL', 'websiteKey', 'minScore'],
+  TurnstileTaskProxyless: ['websiteURL', 'websiteKey'],
+  TurnstileTask: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
+  GeeTestTaskProxyless: ['websiteURL'],
+  GeeTestTask: ['websiteURL', 'proxyType', 'proxyAddress', 'proxyPort'],
+  ImageToTextTask: ['body'],
+  YandexSmartCaptchaTaskProxyless: ['websiteURL', 'websiteKey'],
+  YandexSmartCaptchaTask: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
+  CoordinatesTask: ['body'],
+  TencentTaskProxyless: ['websiteURL', 'appId'],
+  TencentTask: ['websiteURL', 'appId', 'proxyType', 'proxyAddress', 'proxyPort']
+};
+
+function isMissing(value: unknown): boolean {
+  return value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+}
+
+function validateTaskParams(params: Record<string, unknown>): void {
+  const type = params.type;
+  if (typeof type !== 'string') return;
+
+  const required = [...(REQUIRED_TASK_PARAMS[type] || [])];
+  if (type === 'GeeTestTask' || type === 'GeeTestTaskProxyless') {
+    if (params.version === 4) {
+      required.push('initParameters');
+    } else {
+      required.push('gt', 'challenge');
+    }
+  }
+
+  const missing = required.filter((name) => isMissing(params[name]));
+  if (!missing.length && params.version === 4) {
+    const initParameters = params.initParameters as Record<string, unknown>;
+    if (isMissing(initParameters.captcha_id)) missing.push('initParameters.captcha_id');
+  }
+
+  if (missing.length) {
+    throw new ValidationError(`${type} requires: ${missing.join(', ')}`);
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Shared parameter fragments                                          */
 /* ------------------------------------------------------------------ */
@@ -40,8 +86,9 @@ export interface TurnstileSolution {
   /** Token to submit as `cf-turnstile-response`. */
   token: string;
   /**
-   * User-Agent the worker actually solved with. The token is tied to it,
-   * so submit the token with this exact User-Agent.
+   * User-Agent reported by the solving service, when present. For Cloudflare
+   * Challenge pages, keep using the browser User-Agent sent in the task; do
+   * not replace it with this returned value.
    */
   userAgent: string;
   [key: string]: unknown;
@@ -134,6 +181,7 @@ export class BaseTask<TSolution extends Record<string, unknown> = Record<string,
    * @param params - Raw task parameters, including the API `type` field.
    */
   constructor(params: Record<string, unknown>) {
+    validateTaskParams(params);
     this._params = params;
   }
 
@@ -180,7 +228,7 @@ export class GenericTask extends BaseTask {
    * @param params - Task payload; `type` is required.
    * @throws {ValidationError} If `type` is missing.
    */
-  constructor({ type, ...params }: GenericTaskParams) {
+  constructor({ type, ...params }: GenericTaskParams = {} as GenericTaskParams) {
     if (!type) throw new ValidationError('task type is required');
     super({ type, ...params });
   }
@@ -214,11 +262,12 @@ export interface RecaptchaV2Params extends RecaptchaV2ProxylessParams, ProxyPara
 /**
  * reCAPTCHA v2 without a proxy (`RecaptchaV2TaskProxyless`).
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV2Proxyless({ websiteURL, websiteKey })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2
  */
 export class RecaptchaV2Proxyless extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2ProxylessParams) {
+  constructor({ websiteURL, websiteKey, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2ProxylessParams = {} as RecaptchaV2ProxylessParams) {
     super({ type: 'RecaptchaV2TaskProxyless', websiteURL, websiteKey, isInvisible, recaptchaDataSValue, apiDomain, cookies, userAgent });
   }
 }
@@ -226,11 +275,12 @@ export class RecaptchaV2Proxyless extends BaseTask<RecaptchaSolution> {
 /**
  * reCAPTCHA v2 solved through your own proxy (`RecaptchaV2Task`).
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV2({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2
  */
 export class RecaptchaV2 extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2Params) {
+  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2Params = {} as RecaptchaV2Params) {
     super({ type: 'RecaptchaV2Task', websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, isInvisible, recaptchaDataSValue, apiDomain, cookies, userAgent });
   }
 }
@@ -266,11 +316,12 @@ export interface RecaptchaV2EnterpriseParams extends RecaptchaV2EnterpriseProxyl
 /**
  * reCAPTCHA v2 Enterprise without a proxy (`RecaptchaV2EnterpriseTaskProxyless`).
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV2EnterpriseProxyless({ websiteURL, websiteKey })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2-enterprise
  */
 export class RecaptchaV2EnterpriseProxyless extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, enterprisePayload = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2EnterpriseProxylessParams) {
+  constructor({ websiteURL, websiteKey, enterprisePayload = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2EnterpriseProxylessParams = {} as RecaptchaV2EnterpriseProxylessParams) {
     super({ type: 'RecaptchaV2EnterpriseTaskProxyless', websiteURL, websiteKey, enterprisePayload, isInvisible, apiDomain, cookies, userAgent });
   }
 }
@@ -278,11 +329,12 @@ export class RecaptchaV2EnterpriseProxyless extends BaseTask<RecaptchaSolution> 
 /**
  * reCAPTCHA v2 Enterprise solved through your own proxy (`RecaptchaV2EnterpriseTask`).
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV2Enterprise({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2-enterprise
  */
 export class RecaptchaV2Enterprise extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, enterprisePayload = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2EnterpriseParams) {
+  constructor({ websiteURL, websiteKey, enterprisePayload = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2EnterpriseParams = {} as RecaptchaV2EnterpriseParams) {
     super({ type: 'RecaptchaV2EnterpriseTask', websiteURL, websiteKey, enterprisePayload, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, isInvisible, apiDomain, cookies, userAgent });
   }
 }
@@ -311,11 +363,12 @@ export interface RecaptchaV3ProxylessParams {
  * Score-based reCAPTCHA v3 (`RecaptchaV3TaskProxyless`).
  * The API supports this type only without a customer proxy.
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV3Proxyless({ websiteURL, websiteKey, minScore: 0.3 })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v3
  */
 export class RecaptchaV3Proxyless extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, minScore, pageAction = null, isEnterprise = null, apiDomain = null }: RecaptchaV3ProxylessParams) {
+  constructor({ websiteURL, websiteKey, minScore, pageAction = null, isEnterprise = null, apiDomain = null }: RecaptchaV3ProxylessParams = {} as RecaptchaV3ProxylessParams) {
     super({ type: 'RecaptchaV3TaskProxyless', websiteURL, websiteKey, minScore, pageAction, isEnterprise, apiDomain });
   }
 }
@@ -353,11 +406,12 @@ export interface TurnstileParams extends TurnstileProxylessParams, ProxyParams {
 /**
  * Cloudflare Turnstile without a proxy (`TurnstileTaskProxyless`).
  * Solution: {@link TurnstileSolution}.
+ * @example `new Tasks.TurnstileProxyless({ websiteURL, websiteKey })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile
  */
 export class TurnstileProxyless extends BaseTask<TurnstileSolution> {
-  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null }: TurnstileProxylessParams) {
+  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null }: TurnstileProxylessParams = {} as TurnstileProxylessParams) {
     super({ type: 'TurnstileTaskProxyless', websiteURL, websiteKey, action, data, pagedata, userAgent });
   }
 }
@@ -365,11 +419,12 @@ export class TurnstileProxyless extends BaseTask<TurnstileSolution> {
 /**
  * Cloudflare Turnstile solved through your own proxy (`TurnstileTask`).
  * Solution: {@link TurnstileSolution}.
+ * @example `new Tasks.Turnstile({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile
  */
 export class Turnstile extends BaseTask<TurnstileSolution> {
-  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null }: TurnstileParams) {
+  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null }: TurnstileParams = {} as TurnstileParams) {
     super({ type: 'TurnstileTask', websiteURL, websiteKey, action, data, pagedata, userAgent, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword });
   }
 }
@@ -414,12 +469,13 @@ export interface GeeTestParams extends GeeTestProxylessParams, ProxyParams {}
  * GeeTest v3 / v4 without a proxy (`GeeTestTaskProxyless`).
  * Pass `gt` + `challenge` for v3, or `version: 4` + `initParameters.captcha_id` for v4.
  * Solution: {@link GeeTestSolution}.
+ * @example `new Tasks.GeeTestProxyless({ websiteURL, gt, challenge })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v3
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v4
  */
 export class GeeTestProxyless extends BaseTask<GeeTestSolution> {
-  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, userAgent = null, risk_type = null }: GeeTestProxylessParams) {
+  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, userAgent = null, risk_type = null }: GeeTestProxylessParams = {} as GeeTestProxylessParams) {
     super({ type: 'GeeTestTaskProxyless', websiteURL, gt, challenge, version, initParameters, geetestApiServerSubdomain, userAgent, risk_type });
   }
 }
@@ -427,12 +483,13 @@ export class GeeTestProxyless extends BaseTask<GeeTestSolution> {
 /**
  * GeeTest v3 / v4 solved through your own proxy (`GeeTestTask`).
  * Solution: {@link GeeTestSolution}.
+ * @example `new Tasks.GeeTest({ websiteURL, gt, challenge, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v3
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v4
  */
 export class GeeTest extends BaseTask<GeeTestSolution> {
-  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, risk_type = null }: GeeTestParams) {
+  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, risk_type = null }: GeeTestParams = {} as GeeTestParams) {
     super({ type: 'GeeTestTask', websiteURL, gt, challenge, version, initParameters, geetestApiServerSubdomain, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent, risk_type });
   }
 }
@@ -477,11 +534,12 @@ export interface ImageToTextParams {
  * Text / number / math recognition in an image captcha (`ImageToTextTask`).
  * The image is submitted directly, so there is no proxy variant.
  * Solution: {@link ImageToTextSolution}.
+ * @example `new Tasks.ImageToText({ body: imageBase64 })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#image-to-text
  */
 export class ImageToText extends BaseTask<ImageToTextSolution> {
-  constructor({ body, phrase = null, case_ = null, numeric = null, math = null, minLength = null, maxLength = null, comment = null, imgInstructions = null }: ImageToTextParams) {
+  constructor({ body, phrase = null, case_ = null, numeric = null, math = null, minLength = null, maxLength = null, comment = null, imgInstructions = null }: ImageToTextParams = {} as ImageToTextParams) {
     super({ type: 'ImageToTextTask', body, phrase, case: case_, numeric, math, minLength, maxLength, comment, imgInstructions });
   }
 }
@@ -512,11 +570,12 @@ export interface YandexSmartCaptchaTaskParams extends YandexSmartCaptchaTaskProx
  * Token-based Yandex SmartCaptcha without a proxy (`YandexSmartCaptchaTaskProxyless`).
  * For the image challenge use {@link CoordinatesTask} instead.
  * Solution: {@link YandexSmartCaptchaSolution}.
+ * @example `new Tasks.YandexSmartCaptchaTaskProxyless({ websiteURL, websiteKey })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
  */
 export class YandexSmartCaptchaTaskProxyless extends BaseTask<YandexSmartCaptchaSolution> {
-  constructor({ websiteURL, websiteKey, userAgent = null, cookies = null }: YandexSmartCaptchaTaskProxylessParams) {
+  constructor({ websiteURL, websiteKey, userAgent = null, cookies = null }: YandexSmartCaptchaTaskProxylessParams = {} as YandexSmartCaptchaTaskProxylessParams) {
     super({ type: 'YandexSmartCaptchaTaskProxyless', websiteURL, websiteKey, userAgent, cookies });
   }
 }
@@ -524,11 +583,12 @@ export class YandexSmartCaptchaTaskProxyless extends BaseTask<YandexSmartCaptcha
 /**
  * Token-based Yandex SmartCaptcha solved through your own proxy (`YandexSmartCaptchaTask`).
  * Solution: {@link YandexSmartCaptchaSolution}.
+ * @example `new Tasks.YandexSmartCaptchaTask({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
  */
 export class YandexSmartCaptchaTask extends BaseTask<YandexSmartCaptchaSolution> {
-  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, cookies = null }: YandexSmartCaptchaTaskParams) {
+  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, cookies = null }: YandexSmartCaptchaTaskParams = {} as YandexSmartCaptchaTaskParams) {
     super({ type: 'YandexSmartCaptchaTask', websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent, cookies });
   }
 }
@@ -555,11 +615,12 @@ export interface CoordinatesTaskParams {
  * Click captcha: the worker marks points in an image (`CoordinatesTask`).
  * Used for generic "click on X" captchas and the image version of Yandex SmartCaptcha.
  * Solution: {@link CoordinatesSolution}.
+ * @example `new Tasks.CoordinatesTask({ body: imageBase64, comment: 'Click the buses' })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#coordinates
  */
 export class CoordinatesTask extends BaseTask<CoordinatesSolution> {
-  constructor({ body, comment = null, imgInstructions = null, minClicks = null, maxClicks = null }: CoordinatesTaskParams) {
+  constructor({ body, comment = null, imgInstructions = null, minClicks = null, maxClicks = null }: CoordinatesTaskParams = {} as CoordinatesTaskParams) {
     super({ type: 'CoordinatesTask', body, comment, imgInstructions, minClicks, maxClicks });
   }
 }
@@ -584,11 +645,12 @@ export interface TencentTaskParams extends TencentTaskProxylessParams, ProxyPara
 /**
  * Tencent Captcha without a proxy (`TencentTaskProxyless`).
  * Solution: {@link TencentSolution}.
+ * @example `new Tasks.TencentTaskProxyless({ websiteURL, appId })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#tencent
  */
 export class TencentTaskProxyless extends BaseTask<TencentSolution> {
-  constructor({ websiteURL, appId, captchaScript = null }: TencentTaskProxylessParams) {
+  constructor({ websiteURL, appId, captchaScript = null }: TencentTaskProxylessParams = {} as TencentTaskProxylessParams) {
     super({ type: 'TencentTaskProxyless', websiteURL, appId, captchaScript });
   }
 }
@@ -596,11 +658,12 @@ export class TencentTaskProxyless extends BaseTask<TencentSolution> {
 /**
  * Tencent Captcha solved through your own proxy (`TencentTask`).
  * Solution: {@link TencentSolution}.
+ * @example `new Tasks.TencentTask({ websiteURL, appId, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#tencent
  */
 export class TencentTask extends BaseTask<TencentSolution> {
-  constructor({ websiteURL, appId, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, captchaScript = null }: TencentTaskParams) {
+  constructor({ websiteURL, appId, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, captchaScript = null }: TencentTaskParams = {} as TencentTaskParams) {
     super({ type: 'TencentTask', websiteURL, appId, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, captchaScript });
   }
 }

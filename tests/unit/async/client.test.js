@@ -25,6 +25,7 @@ describe('CaptchaClient (async)', () => {
 
   test('throws ValidationError when clientKey is missing', () => {
     expect(() => new CaptchaClient({})).toThrow(ValidationError);
+    expect(() => new CaptchaClient()).toThrow(ValidationError);
   });
 
   test('sends the SDK version header', async () => {

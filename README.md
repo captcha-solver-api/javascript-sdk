@@ -87,14 +87,13 @@ const task = new Tasks.RecaptchaV2Proxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: 'YOUR_WEBSITE_KEY'
 });
-const result = await captchaSolver.solve(task);
-console.log(result.gRecaptchaResponse);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.gRecaptchaResponse))
+  .catch(console.error);
 ```
 
-Runnable versions of every example below live in [examples/async](examples/async) (async/await
-style) and [examples/sync](examples/sync) (promise-chain style, `.then()/.catch()`) -- both call
-the same `CaptchaClient`, since JavaScript has no blocking HTTP client to mirror `requests` vs.
-`httpx` the way the Python SDK does. See [Running the examples](#running-the-examples).
+Runnable Promise-chain versions of every example below live in [examples](examples).
+Each file contains one API operation. See [Running the examples](#running-the-examples).
 
 ## Build Faster with AI
 
@@ -119,14 +118,17 @@ on the target page.
 |---|---|---|
 | reCAPTCHA v2 | ✅ | ✅ |
 | reCAPTCHA v2 Enterprise | ✅ | ✅ |
-| reCAPTCHA v3 | ✅ | ❌ |
+| reCAPTCHA v3 | ✅ | — |
 | Cloudflare Turnstile | ✅ | ✅ |
 | GeeTest v3 | ✅ | ✅ |
 | GeeTest v4 | ✅ | ✅ |
-| Image to Text | ✅ | ❌ |
+| Image to Text | ✅ | — |
 | Yandex SmartCaptcha | ✅ | ✅ |
-| Coordinates (click captcha) | ✅ | ❌ |
+| Coordinates (click captcha) | ✅ | — |
 | Tencent | ✅ | ✅ |
+
+`—` means that this CAPTCHA type does not have a separate proxy task method;
+the supported task is used as shown in the Proxyless column.
 
 ### Other supported API task types
 
@@ -139,7 +141,9 @@ const task = new Tasks.GenericTask({
   websiteKey: 'YOUR_WEBSITE_KEY'
 });
 
-const solution = await captchaSolver.solve(task);
+captchaSolver.solve(task)
+  .then(console.log)
+  .catch(console.error);
 ```
 
 `GenericTask` preserves every supplied API field and removes only `null` and `undefined` values.
@@ -201,8 +205,7 @@ account's currency. Rejects with `ApiError`, `NetworkError`.
 Each section below covers one captcha type end-to-end: task fields, the `solution`
 shape, a runnable example, and a link to the full spec. Optional fields left unset
 are omitted from the request. Every code block matches a runnable file under
-[examples/async](examples/async) (and its [examples/sync](examples/sync) counterpart)
--- swap the placeholder `websiteURL`/`websiteKey`/etc. for values from your own
+[examples](examples) -- swap the placeholder `websiteURL`/`websiteKey`/etc. for values from your own
 target page before running. See [Running the examples](#running-the-examples).
 
 Types with a `*` counterpart (as opposed to `*Proxyless`) also accept `proxyType` /
@@ -228,7 +231,9 @@ Choose the proxy variant when the solving session must use your own IP address.
 | `userAgent` | no | User-Agent to solve with. Recommended to match the agent submitting the token. |
 | `cookies` | no | Session cookies to use while solving, if the page requires them. |
 
-**Response:** `gRecaptchaResponse` -- submit as `g-recaptcha-response`.
+**Response fields**
+
+- `gRecaptchaResponse` — submit this token as `g-recaptcha-response`.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -237,8 +242,9 @@ const task = new Tasks.RecaptchaV2Proxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: 'YOUR_WEBSITE_KEY'
 });
-const result = await captchaSolver.solve(task);
-console.log(result.gRecaptchaResponse);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.gRecaptchaResponse))
+  .catch(console.error);
 ```
 
 With proxy, use `Tasks.RecaptchaV2` instead:
@@ -270,7 +276,13 @@ as reCAPTCHA v2, plus:
 | `enterprisePayload` | no | Extra parameters passed to `grecaptcha.enterprise.render` on the page, e.g. `{ s: '...' }`. |
 | `apiDomain` | no | Defaults to `google.com`. |
 
-**Response:** `gRecaptchaResponse`.
+> **Important:** If the page passes values such as `s` to
+> `grecaptcha.enterprise.render`, include them in `enterprisePayload`. A token
+> created without the page's payload can be rejected by the target website.
+
+**Response fields**
+
+- `gRecaptchaResponse` — submit this token to the Enterprise reCAPTCHA callback.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -279,8 +291,9 @@ const task = new Tasks.RecaptchaV2EnterpriseProxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: 'YOUR_WEBSITE_KEY'
 });
-const result = await captchaSolver.solve(task);
-console.log(result.gRecaptchaResponse);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.gRecaptchaResponse))
+  .catch(console.error);
 ```
 
 With proxy, use `Tasks.RecaptchaV2Enterprise` (same proxy fields as reCAPTCHA v2).
@@ -302,7 +315,9 @@ this task only without a customer proxy.
 | `isEnterprise` | no | Set to `true` for reCAPTCHA v3 Enterprise. |
 | `apiDomain` | no | Alternative domain used to load the reCAPTCHA script. |
 
-**Response:** `gRecaptchaResponse`.
+**Response fields**
+
+- `gRecaptchaResponse` — submit this token to the reCAPTCHA v3 callback.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -315,8 +330,9 @@ const task = new Tasks.RecaptchaV3Proxyless({
   pageAction: 'homepage'
 });
 
-const result = await captchaSolver.solve(task);
-console.log(result.gRecaptchaResponse);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.gRecaptchaResponse))
+  .catch(console.error);
 ```
 
 ### Cloudflare Turnstile
@@ -337,10 +353,15 @@ that the target page expects in `cf-turnstile-response`.
 | `pagedata` | no | Value of the `chlPageData` parameter, needed for some Cloudflare challenge pages beyond the basic widget. Note the lowercase, single-word spelling -- unlike every other field on this page, the real API does not accept `pageData`. |
 | `userAgent` | no | Current browser User-Agent. Pass it for Cloudflare Challenge pages; it is not needed for a standalone widget. |
 
-**Response:** `token` -- submit as `cf-turnstile-response`. For Cloudflare Challenge
-pages, pass `action`, `data`, `pagedata`, and the current browser `userAgent` in the
-task. Keep the browser User-Agent unchanged when invoking the callback. The solution
-may also contain `userAgent`; do not switch the browser to this returned value.
+**Response fields**
+
+- `token` — submit this value as `cf-turnstile-response`.
+- `userAgent` — the User-Agent reported by the solving service, when present.
+
+> **Important:** For Cloudflare Challenge pages, pass `action`, `data`,
+> `pagedata`, and the current browser `userAgent` in the task. Keep that browser
+> User-Agent unchanged when invoking the callback; do not switch it to the
+> returned value.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -349,8 +370,9 @@ const task = new Tasks.TurnstileProxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: 'YOUR_WEBSITE_KEY'
 });
-const result = await captchaSolver.solve(task);
-console.log(result.token);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.token))
+  .catch(console.error);
 ```
 
 With proxy, use `Tasks.Turnstile` (same proxy fields as reCAPTCHA v2).
@@ -376,7 +398,12 @@ browser session involved.
 | `comment` | no | Free-text hint for the worker. |
 | `imgInstructions` | no | Optional supplementary instruction image, base64-encoded. |
 
-**Response:** `text` -- the recognized text/answer.
+> **Important:** Pass only the raw base64 data in `body` and
+> `imgInstructions`. Remove prefixes such as `data:image/png;base64,`.
+
+**Response fields**
+
+- `text` — the recognized text or calculated answer.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -389,8 +416,9 @@ const task = new Tasks.ImageToText({
   minLength: 4,
   maxLength: 6
 });
-const result = await captchaSolver.solve(task);
-console.log(result.text);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.text))
+  .catch(console.error);
 ```
 
 ### GeeTest (v3 & v4)
@@ -414,23 +442,30 @@ pass the values collected from the target page before creating the task.
 | `userAgent` | no | User-Agent to solve with. |
 | `risk_type` | no | Dynamic, single-use value included in the page's captcha-loading request, if present. Note the snake_case name -- unlike every other field here, the real API does not accept `riskType`. |
 
-**Response:** v3 -- `challenge`, `validate`, `seccode`. v4 -- `captcha_id`, `lot_number`, `pass_token`, `gen_time`, `captcha_output`.
+**Response fields**
+
+- GeeTest v3: `challenge`, `validate`, and `seccode`.
+- GeeTest v4: `captcha_id`, `lot_number`, `pass_token`, `gen_time`, and
+  `captcha_output`.
+
+> **Important:** Fetch a fresh v3 `challenge` for every task. Do not reuse a
+> challenge value from an earlier request.
 Docs: [v3 ↗](https://captcha-solver.com/en/docs/captcha-types#geetest-v3), [v4 ↗](https://captcha-solver.com/en/docs/captcha-types#geetest-v4)
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
-const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key', timeout: 300000, pollingInterval: 10000 });
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key', timeout: 300000 });
 const task = new Tasks.GeeTestProxyless({
   websiteURL: 'https://example.com/login',
   gt: 'f2ae6cadcf7886856696c46d84d109d1',
   challenge: '12345678abc90123d45678e90123f45g6' // dynamic -- fetch a fresh one per request
 });
-const result = await captchaSolver.solve(task);
-console.log(result.validate);
-console.log(result.seccode);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.validate, solution.seccode))
+  .catch(console.error);
 ```
 `challenge` is session-specific and expires quickly, so it can't be hardcoded into a
-static example -- see [examples/async/geetest_v3.js](examples/async/geetest_v3.js) for
+static example -- see [examples/geetest_v3.js](examples/geetest_v3.js) for
 where the fetch belongs in the flow.
 
 ```javascript
@@ -439,8 +474,9 @@ const task = new Tasks.GeeTestProxyless({
   version: 4,
   initParameters: { captcha_id: 'YOUR_CAPTCHA_ID' }
 });
-const result = await captchaSolver.solve(task);
-console.log(result.captcha_output);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.captcha_output))
+  .catch(console.error);
 ```
 
 With proxy, use `Tasks.GeeTest` (same proxy fields as reCAPTCHA v2).
@@ -465,7 +501,9 @@ challenge. For the image challenge instead, use `Tasks.CoordinatesTask` with
 Proxy variant note: `proxyType` also accepts `'https'` for this captcha type only
 (in addition to `http`/`socks4`/`socks5`).
 
-**Response:** `token`.
+**Response fields**
+
+- `token` — submit this value to the SmartCaptcha callback.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -474,8 +512,9 @@ const task = new Tasks.YandexSmartCaptchaTaskProxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: 'YOUR_WEBSITE_KEY'
 });
-const result = await captchaSolver.solve(task);
-console.log(result.token);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.token))
+  .catch(console.error);
 ```
 
 With proxy, use `Tasks.YandexSmartCaptchaTask` (same proxy fields as reCAPTCHA v2,
@@ -498,7 +537,9 @@ directly.
 | `minClicks` | no | Minimum number of clicks expected (default `1`). |
 | `maxClicks` | no | Maximum number of clicks allowed. |
 
-**Response:** `coordinates` -- an array of `{ x, y }` pixel positions to click, in order.
+**Response fields**
+
+- `coordinates` — an ordered array of `{ x, y }` pixel positions to click.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -509,11 +550,11 @@ const task = new Tasks.CoordinatesTask({
   body: body,
   comment: 'click on the green apple'
 });
-const result = await captchaSolver.solve(task);
-console.log(result.coordinates); // [{ x: 358, y: 268 }]
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.coordinates))
+  .catch(console.error);
 ```
-mode" block in [examples/async/coordinates.js](examples/async/coordinates.js) (or
-[examples/sync/coordinates.js](examples/sync/coordinates.js)).
+example in [examples/coordinates_traffic_lights.js](examples/coordinates_traffic_lights.js).
 
 ### Tencent
 
@@ -530,7 +571,14 @@ values required by the target page.
 | `appId` | yes | Value of the `appId` parameter found in the page source. |
 | `captchaScript` | no | URL of the Tencent captcha script, if the page uses a non-default one. |
 
-**Response:** `appid`, `ret`, `ticket`, `randstr` -- pass all four into the page's Tencent captcha callback.
+**Response fields**
+
+- `appid` — Tencent application ID.
+- `ret` — Tencent result code.
+- `ticket` — verification ticket.
+- `randstr` — verification nonce.
+
+Pass all four values to the page's Tencent CAPTCHA callback.
 
 ```javascript
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
@@ -539,8 +587,9 @@ const task = new Tasks.TencentTaskProxyless({
   websiteURL: 'https://example.com/register',
   appId: 'YOUR_APP_ID'
 });
-const result = await captchaSolver.solve(task);
-console.log(result.ticket);
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.ticket))
+  .catch(console.error);
 ```
 
 With proxy, use `Tasks.TencentTask` (same proxy fields as reCAPTCHA v2).
@@ -552,8 +601,9 @@ With proxy, use `Tasks.TencentTask` (same proxy fields as reCAPTCHA v2).
 ```javascript
 import { CaptchaClient } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
-const balance = await captchaSolver.getBalance();
-console.log(`Balance: ${balance}`);
+captchaSolver.getBalance()
+  .then((balance) => console.log(`Balance: ${balance}`))
+  .catch(console.error);
 ```
 
 ### Custom timeout and polling
@@ -572,7 +622,9 @@ Pass `languagePool` as the second argument to `solve()` (or `createTask()`) to p
 worker pool by language. Accepted values: `'en'` or `'ru'`.
 
 ```javascript
-const result = await captchaSolver.solve(task, 'en');
+captchaSolver.solve(task, 'en')
+  .then(console.log)
+  .catch(console.error);
 ```
 
 ### Solving multiple captchas in parallel
@@ -587,7 +639,9 @@ const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task1 = captchaSolver.solve(new Tasks.RecaptchaV2Proxyless({ websiteURL: 'https://site1.com', websiteKey: 'key1' }));
 const task2 = captchaSolver.solve(new Tasks.TurnstileProxyless({ websiteURL: 'https://site2.com', websiteKey: 'key2' }));
 
-const results = await Promise.allSettled([task1, task2]);
+Promise.allSettled([task1, task2])
+  .then(console.log)
+  .catch(console.error);
 ```
 This completes in roughly the time of the slowest single captcha, not the sum of all of them.
 
@@ -596,9 +650,7 @@ This completes in roughly the time of the slowest single captcha, not the sum of
 ```javascript
 import { CaptchaClient, ApiError, TimeoutError, NetworkError, ValidationError } from '@captcha-solver-api/javascript-sdk';
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
-try {
-  const result = await captchaSolver.solve(task);
-} catch (error) {
+captchaSolver.solve(task).catch((error) => {
   if (error instanceof ValidationError) {
     console.log(`Invalid input: ${error.message}`);
   } else if (error instanceof ApiError) {
@@ -608,7 +660,7 @@ try {
   } else if (error instanceof NetworkError) {
     console.log(`Network error: ${error.message}`);
   }
-}
+});
 ```
 
 ### TypeScript
@@ -623,12 +675,13 @@ import type { TurnstileSolution } from '@captcha-solver-api/javascript-sdk';
 
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 
-const result = await captchaSolver.solve(new Tasks.TurnstileProxyless({
+captchaSolver.solve(new Tasks.TurnstileProxyless({
   websiteURL: 'https://example.com/login',
   websiteKey: 'YOUR_WEBSITE_KEY'
-}));
-result.token;      // string
-result.userAgent;  // string
+})).then((result) => {
+  result.token;      // string
+  result.userAgent;  // string
+});
 
 // The same shape is exported by name if you need to pass it around.
 const stored: TurnstileSolution = result;
@@ -662,9 +715,9 @@ matches this README.
 
 ```bash
 export CAPTCHA_API_KEY=your_api_key
-node examples/async/balance.js
-node examples/async/image_to_text.js
-node examples/async/coordinates.js
+node examples/balance.js
+node examples/image_to_text.js
+node examples/coordinates.js
 ```
 
 Full details, an example index, and a per-type breakdown of what each script
