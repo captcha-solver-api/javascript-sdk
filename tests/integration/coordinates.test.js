@@ -20,6 +20,14 @@ import { Tasks } from '@captcha-solver-api/javascript-sdk';
 import { describeIntegration, createClient } from './helpers.js';
 
 const imagePath = new URL('../../examples/assets/coordinates-captcha.png', import.meta.url);
+const yandexImagePath = new URL(
+  '../../examples/assets/yandex-smartcaptcha-image.png',
+  import.meta.url
+);
+const yandexInstructionsPath = new URL(
+  '../../examples/assets/yandex-smartcaptcha-instructions.png',
+  import.meta.url
+);
 
 // The sample is a 4x4 grid captcha whose own header reads "Select all squares
 // with street signs". The comment repeats that instruction for the worker,
@@ -48,6 +56,32 @@ describeIntegration('Coordinates against the real API', () => {
     const width = image.readUInt32BE(16);
     const height = image.readUInt32BE(20);
 
+    for (const point of solution.coordinates) {
+      expect(typeof point.x).toBe('number');
+      expect(typeof point.y).toBe('number');
+      expect(point.x).toBeGreaterThanOrEqual(0);
+      expect(point.y).toBeGreaterThanOrEqual(0);
+      expect(point.x).toBeLessThanOrEqual(width);
+      expect(point.y).toBeLessThanOrEqual(height);
+    }
+  }, 130000);
+
+  test('Yandex SmartCaptcha image returns ordered click coordinates', async () => {
+    const image = fs.readFileSync(yandexImagePath);
+    const instructions = fs.readFileSync(yandexInstructionsPath);
+    const task = new Tasks.YandexSmartCaptchaImageTask({
+      body: image.toString('base64'),
+      imgInstructions: instructions.toString('base64'),
+      minClicks: 4,
+      maxClicks: 4
+    });
+
+    const solution = await createClient().solve(task);
+
+    expect(solution.coordinates).toHaveLength(4);
+
+    const width = image.readUInt32BE(16);
+    const height = image.readUInt32BE(20);
     for (const point of solution.coordinates) {
       expect(typeof point.x).toBe('number');
       expect(typeof point.y).toBe('number');
