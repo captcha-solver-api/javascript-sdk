@@ -227,7 +227,7 @@ export class GenericTask extends BaseTask {
    * @param params - Task payload; `type` is required.
    * @throws {ValidationError} If `type` is missing.
    */
-  constructor({ type, ...params }: GenericTaskParams) {
+  constructor({ type, ...params }: GenericTaskParams = {} as GenericTaskParams) {
     if (!type) throw new ValidationError('task type is required');
     super({ type, ...params });
   }
@@ -265,7 +265,7 @@ export interface RecaptchaV2Params extends RecaptchaV2ProxylessParams, ProxyPara
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2
  */
 export class RecaptchaV2Proxyless extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2ProxylessParams) {
+  constructor({ websiteURL, websiteKey, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2ProxylessParams = {} as RecaptchaV2ProxylessParams) {
     super({ type: 'RecaptchaV2TaskProxyless', websiteURL, websiteKey, isInvisible, recaptchaDataSValue, apiDomain, cookies, userAgent });
   }
 }
@@ -277,7 +277,7 @@ export class RecaptchaV2Proxyless extends BaseTask<RecaptchaSolution> {
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2
  */
 export class RecaptchaV2 extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2Params) {
+  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, recaptchaDataSValue = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2Params = {} as RecaptchaV2Params) {
     super({ type: 'RecaptchaV2Task', websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, isInvisible, recaptchaDataSValue, apiDomain, cookies, userAgent });
   }
 }
@@ -317,7 +317,7 @@ export interface RecaptchaV2EnterpriseParams extends RecaptchaV2EnterpriseProxyl
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2-enterprise
  */
 export class RecaptchaV2EnterpriseProxyless extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, enterprisePayload = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2EnterpriseProxylessParams) {
+  constructor({ websiteURL, websiteKey, enterprisePayload = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2EnterpriseProxylessParams = {} as RecaptchaV2EnterpriseProxylessParams) {
     super({ type: 'RecaptchaV2EnterpriseTaskProxyless', websiteURL, websiteKey, enterprisePayload, isInvisible, apiDomain, cookies, userAgent });
   }
 }
@@ -329,7 +329,7 @@ export class RecaptchaV2EnterpriseProxyless extends BaseTask<RecaptchaSolution> 
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2-enterprise
  */
 export class RecaptchaV2Enterprise extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, enterprisePayload = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2EnterpriseParams) {
+  constructor({ websiteURL, websiteKey, enterprisePayload = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, isInvisible = null, apiDomain = null, cookies = null, userAgent = null }: RecaptchaV2EnterpriseParams = {} as RecaptchaV2EnterpriseParams) {
     super({ type: 'RecaptchaV2EnterpriseTask', websiteURL, websiteKey, enterprisePayload, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, isInvisible, apiDomain, cookies, userAgent });
   }
 }
@@ -362,7 +362,7 @@ export interface RecaptchaV3ProxylessParams {
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v3
  */
 export class RecaptchaV3Proxyless extends BaseTask<RecaptchaSolution> {
-  constructor({ websiteURL, websiteKey, minScore, pageAction = null, isEnterprise = null, apiDomain = null }: RecaptchaV3ProxylessParams) {
+  constructor({ websiteURL, websiteKey, minScore, pageAction = null, isEnterprise = null, apiDomain = null }: RecaptchaV3ProxylessParams = {} as RecaptchaV3ProxylessParams) {
     super({ type: 'RecaptchaV3TaskProxyless', websiteURL, websiteKey, minScore, pageAction, isEnterprise, apiDomain });
   }
 }
@@ -404,7 +404,7 @@ export interface TurnstileParams extends TurnstileProxylessParams, ProxyParams {
  * @see https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile
  */
 export class TurnstileProxyless extends BaseTask<TurnstileSolution> {
-  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null }: TurnstileProxylessParams) {
+  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null }: TurnstileProxylessParams = {} as TurnstileProxylessParams) {
     super({ type: 'TurnstileTaskProxyless', websiteURL, websiteKey, action, data, pagedata, userAgent });
   }
 }
@@ -416,7 +416,7 @@ export class TurnstileProxyless extends BaseTask<TurnstileSolution> {
  * @see https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile
  */
 export class Turnstile extends BaseTask<TurnstileSolution> {
-  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null }: TurnstileParams) {
+  constructor({ websiteURL, websiteKey, action = null, data = null, pagedata = null, userAgent = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null }: TurnstileParams = {} as TurnstileParams) {
     super({ type: 'TurnstileTask', websiteURL, websiteKey, action, data, pagedata, userAgent, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword });
   }
 }
@@ -466,7 +466,7 @@ export interface GeeTestParams extends GeeTestProxylessParams, ProxyParams {}
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v4
  */
 export class GeeTestProxyless extends BaseTask<GeeTestSolution> {
-  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, userAgent = null, risk_type = null }: GeeTestProxylessParams) {
+  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, userAgent = null, risk_type = null }: GeeTestProxylessParams = {} as GeeTestProxylessParams) {
     super({ type: 'GeeTestTaskProxyless', websiteURL, gt, challenge, version, initParameters, geetestApiServerSubdomain, userAgent, risk_type });
   }
 }
@@ -479,7 +479,7 @@ export class GeeTestProxyless extends BaseTask<GeeTestSolution> {
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v4
  */
 export class GeeTest extends BaseTask<GeeTestSolution> {
-  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, risk_type = null }: GeeTestParams) {
+  constructor({ websiteURL, gt = null, challenge = null, version = null, initParameters = null, geetestApiServerSubdomain = null, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, risk_type = null }: GeeTestParams = {} as GeeTestParams) {
     super({ type: 'GeeTestTask', websiteURL, gt, challenge, version, initParameters, geetestApiServerSubdomain, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent, risk_type });
   }
 }
@@ -528,7 +528,7 @@ export interface ImageToTextParams {
  * @see https://captcha-solver.com/en/docs/captcha-types#image-to-text
  */
 export class ImageToText extends BaseTask<ImageToTextSolution> {
-  constructor({ body, phrase = null, case_ = null, numeric = null, math = null, minLength = null, maxLength = null, comment = null, imgInstructions = null }: ImageToTextParams) {
+  constructor({ body, phrase = null, case_ = null, numeric = null, math = null, minLength = null, maxLength = null, comment = null, imgInstructions = null }: ImageToTextParams = {} as ImageToTextParams) {
     super({ type: 'ImageToTextTask', body, phrase, case: case_, numeric, math, minLength, maxLength, comment, imgInstructions });
   }
 }
@@ -563,7 +563,7 @@ export interface YandexSmartCaptchaTaskParams extends YandexSmartCaptchaTaskProx
  * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
  */
 export class YandexSmartCaptchaTaskProxyless extends BaseTask<YandexSmartCaptchaSolution> {
-  constructor({ websiteURL, websiteKey, userAgent = null, cookies = null }: YandexSmartCaptchaTaskProxylessParams) {
+  constructor({ websiteURL, websiteKey, userAgent = null, cookies = null }: YandexSmartCaptchaTaskProxylessParams = {} as YandexSmartCaptchaTaskProxylessParams) {
     super({ type: 'YandexSmartCaptchaTaskProxyless', websiteURL, websiteKey, userAgent, cookies });
   }
 }
@@ -575,7 +575,7 @@ export class YandexSmartCaptchaTaskProxyless extends BaseTask<YandexSmartCaptcha
  * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
  */
 export class YandexSmartCaptchaTask extends BaseTask<YandexSmartCaptchaSolution> {
-  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, cookies = null }: YandexSmartCaptchaTaskParams) {
+  constructor({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, userAgent = null, cookies = null }: YandexSmartCaptchaTaskParams = {} as YandexSmartCaptchaTaskParams) {
     super({ type: 'YandexSmartCaptchaTask', websiteURL, websiteKey, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, userAgent, cookies });
   }
 }
@@ -606,7 +606,7 @@ export interface CoordinatesTaskParams {
  * @see https://captcha-solver.com/en/docs/captcha-types#coordinates
  */
 export class CoordinatesTask extends BaseTask<CoordinatesSolution> {
-  constructor({ body, comment = null, imgInstructions = null, minClicks = null, maxClicks = null }: CoordinatesTaskParams) {
+  constructor({ body, comment = null, imgInstructions = null, minClicks = null, maxClicks = null }: CoordinatesTaskParams = {} as CoordinatesTaskParams) {
     super({ type: 'CoordinatesTask', body, comment, imgInstructions, minClicks, maxClicks });
   }
 }
@@ -635,7 +635,7 @@ export interface TencentTaskParams extends TencentTaskProxylessParams, ProxyPara
  * @see https://captcha-solver.com/en/docs/captcha-types#tencent
  */
 export class TencentTaskProxyless extends BaseTask<TencentSolution> {
-  constructor({ websiteURL, appId, captchaScript = null }: TencentTaskProxylessParams) {
+  constructor({ websiteURL, appId, captchaScript = null }: TencentTaskProxylessParams = {} as TencentTaskProxylessParams) {
     super({ type: 'TencentTaskProxyless', websiteURL, appId, captchaScript });
   }
 }
@@ -647,7 +647,7 @@ export class TencentTaskProxyless extends BaseTask<TencentSolution> {
  * @see https://captcha-solver.com/en/docs/captcha-types#tencent
  */
 export class TencentTask extends BaseTask<TencentSolution> {
-  constructor({ websiteURL, appId, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, captchaScript = null }: TencentTaskParams) {
+  constructor({ websiteURL, appId, proxyType, proxyAddress, proxyPort, proxyLogin = null, proxyPassword = null, captchaScript = null }: TencentTaskParams = {} as TencentTaskParams) {
     super({ type: 'TencentTask', websiteURL, appId, proxyType, proxyAddress, proxyPort, proxyLogin, proxyPassword, captchaScript });
   }
 }

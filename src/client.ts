@@ -75,7 +75,7 @@ export class CaptchaClient {
    * @param options - Client options; only `clientKey` is required.
    * @throws {ValidationError} If `clientKey` is empty.
    */
-  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000 }: CaptchaClientOptions) {
+  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000 }: CaptchaClientOptions = {} as CaptchaClientOptions) {
     if (!clientKey) throw new ValidationError('clientKey is required');
     this.clientKey = clientKey; this.baseUrl = baseUrl; this.timeout = timeout; this.pollingInterval = pollingInterval;
   }

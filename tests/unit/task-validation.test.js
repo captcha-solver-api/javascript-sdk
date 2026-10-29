@@ -1,6 +1,13 @@
 import { Tasks, ValidationError } from '@captcha-solver-api/javascript-sdk';
 
 describe('built-in task validation', () => {
+  test('missing constructor arguments produce SDK validation errors', () => {
+    expect(() => new Tasks.ImageToText()).toThrow(ValidationError);
+    expect(() => new Tasks.RecaptchaV2Proxyless()).toThrow(
+      'RecaptchaV2TaskProxyless requires: websiteURL, websiteKey'
+    );
+  });
+
   test.each([
     ['RecaptchaV2Proxyless', { websiteURL: 'https://example.com' }, 'websiteKey'],
     ['RecaptchaV2', { websiteURL: 'https://example.com', websiteKey: 'key' }, 'proxyType, proxyAddress, proxyPort'],

@@ -26,6 +26,7 @@ describe('CaptchaClient (sync-style)', () => {
 
   test('throws ValidationError when clientKey is missing', () => {
     expect(() => new CaptchaClient({})).toThrow(ValidationError);
+    expect(() => new CaptchaClient()).toThrow(ValidationError);
   });
 
   test('creates task and returns taskId', () => {
