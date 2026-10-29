@@ -125,6 +125,7 @@ on the target page.
 | GeeTest v4 | ✅ | ✅ |
 | Image to Text | ✅ | ❌ |
 | Yandex SmartCaptcha | ✅ | ✅ |
+| Yandex SmartCaptcha Image | ✅ | ❌ |
 | Coordinates (click captcha) | ✅ | ❌ |
 | Tencent | ✅ | ✅ |
 
@@ -480,6 +481,29 @@ console.log(result.token);
 
 With proxy, use `Tasks.YandexSmartCaptchaTask` (same proxy fields as reCAPTCHA v2,
 plus the `https` option above).
+
+#### Image challenge
+
+Use `Tasks.YandexSmartCaptchaImageTask` when SmartCaptcha shows a main image and
+a separate strip indicating the symbols to click. Encode both images as base64;
+the returned coordinates are already ordered for clicking.
+
+```javascript
+import fs from 'node:fs';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
+
+const task = new Tasks.YandexSmartCaptchaImageTask({
+  body: fs.readFileSync('captcha.png').toString('base64'),
+  imgInstructions: fs.readFileSync('instructions.png').toString('base64'),
+  minClicks: 4,
+  maxClicks: 4
+});
+const result = await new CaptchaClient({ clientKey: 'your_api_key' }).solve(task);
+console.log(result.coordinates);
+```
+
+See the runnable [async](examples/async/yandex_smartcaptcha_image.js) and
+[promise-chain](examples/sync/yandex_smartcaptcha_image.js) examples.
 
 ### Coordinates (click captcha)
 

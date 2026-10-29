@@ -28,6 +28,7 @@ spends balance twice. Comment out the one you don't need.
 | [geetest_v3.js](geetest_v3.js) | Fetches a fresh `challenge`, then solves GeeTest v3 | Fetch · Proxyless · With proxy |
 | [geetest_v4.js](geetest_v4.js) | Solves GeeTest v4 via `captcha_id` | Proxyless · With proxy |
 | [yandex_smartcaptcha.js](yandex_smartcaptcha.js) | Solves Yandex SmartCaptcha (token challenge) | Proxyless · With proxy |
+| [yandex_smartcaptcha_image.js](yandex_smartcaptcha_image.js) | Solves Yandex SmartCaptcha image challenge | single task |
 | [tencent.js](tencent.js) | Solves a Tencent captcha | Proxyless · With proxy |
 | [image_to_text.js](image_to_text.js) | Recognises text on a captcha image | Basic · Advanced · With language pool |
 
