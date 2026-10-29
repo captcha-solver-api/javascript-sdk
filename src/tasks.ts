@@ -261,6 +261,7 @@ export interface RecaptchaV2Params extends RecaptchaV2ProxylessParams, ProxyPara
 /**
  * reCAPTCHA v2 without a proxy (`RecaptchaV2TaskProxyless`).
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV2Proxyless({ websiteURL, websiteKey })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2
  */
@@ -273,6 +274,7 @@ export class RecaptchaV2Proxyless extends BaseTask<RecaptchaSolution> {
 /**
  * reCAPTCHA v2 solved through your own proxy (`RecaptchaV2Task`).
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV2({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2
  */
@@ -313,6 +315,7 @@ export interface RecaptchaV2EnterpriseParams extends RecaptchaV2EnterpriseProxyl
 /**
  * reCAPTCHA v2 Enterprise without a proxy (`RecaptchaV2EnterpriseTaskProxyless`).
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV2EnterpriseProxyless({ websiteURL, websiteKey })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2-enterprise
  */
@@ -325,6 +328,7 @@ export class RecaptchaV2EnterpriseProxyless extends BaseTask<RecaptchaSolution> 
 /**
  * reCAPTCHA v2 Enterprise solved through your own proxy (`RecaptchaV2EnterpriseTask`).
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV2Enterprise({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v2-enterprise
  */
@@ -358,6 +362,7 @@ export interface RecaptchaV3ProxylessParams {
  * Score-based reCAPTCHA v3 (`RecaptchaV3TaskProxyless`).
  * The API supports this type only without a customer proxy.
  * Solution: {@link RecaptchaSolution}.
+ * @example `new Tasks.RecaptchaV3Proxyless({ websiteURL, websiteKey, minScore: 0.3 })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#recaptcha-v3
  */
@@ -400,6 +405,7 @@ export interface TurnstileParams extends TurnstileProxylessParams, ProxyParams {
 /**
  * Cloudflare Turnstile without a proxy (`TurnstileTaskProxyless`).
  * Solution: {@link TurnstileSolution}.
+ * @example `new Tasks.TurnstileProxyless({ websiteURL, websiteKey })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile
  */
@@ -412,6 +418,7 @@ export class TurnstileProxyless extends BaseTask<TurnstileSolution> {
 /**
  * Cloudflare Turnstile solved through your own proxy (`TurnstileTask`).
  * Solution: {@link TurnstileSolution}.
+ * @example `new Tasks.Turnstile({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#cloudflare-turnstile
  */
@@ -461,6 +468,7 @@ export interface GeeTestParams extends GeeTestProxylessParams, ProxyParams {}
  * GeeTest v3 / v4 without a proxy (`GeeTestTaskProxyless`).
  * Pass `gt` + `challenge` for v3, or `version: 4` + `initParameters.captcha_id` for v4.
  * Solution: {@link GeeTestSolution}.
+ * @example `new Tasks.GeeTestProxyless({ websiteURL, gt, challenge })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v3
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v4
@@ -474,6 +482,7 @@ export class GeeTestProxyless extends BaseTask<GeeTestSolution> {
 /**
  * GeeTest v3 / v4 solved through your own proxy (`GeeTestTask`).
  * Solution: {@link GeeTestSolution}.
+ * @example `new Tasks.GeeTest({ websiteURL, gt, challenge, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v3
  * @see https://captcha-solver.com/en/docs/captcha-types#geetest-v4
@@ -524,6 +533,7 @@ export interface ImageToTextParams {
  * Text / number / math recognition in an image captcha (`ImageToTextTask`).
  * The image is submitted directly, so there is no proxy variant.
  * Solution: {@link ImageToTextSolution}.
+ * @example `new Tasks.ImageToText({ body: imageBase64 })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#image-to-text
  */
@@ -559,6 +569,7 @@ export interface YandexSmartCaptchaTaskParams extends YandexSmartCaptchaTaskProx
  * Token-based Yandex SmartCaptcha without a proxy (`YandexSmartCaptchaTaskProxyless`).
  * For the image challenge use {@link CoordinatesTask} instead.
  * Solution: {@link YandexSmartCaptchaSolution}.
+ * @example `new Tasks.YandexSmartCaptchaTaskProxyless({ websiteURL, websiteKey })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
  */
@@ -571,6 +582,7 @@ export class YandexSmartCaptchaTaskProxyless extends BaseTask<YandexSmartCaptcha
 /**
  * Token-based Yandex SmartCaptcha solved through your own proxy (`YandexSmartCaptchaTask`).
  * Solution: {@link YandexSmartCaptchaSolution}.
+ * @example `new Tasks.YandexSmartCaptchaTask({ websiteURL, websiteKey, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
  */
@@ -602,6 +614,7 @@ export interface CoordinatesTaskParams {
  * Click captcha: the worker marks points in an image (`CoordinatesTask`).
  * Used for generic "click on X" captchas and the image version of Yandex SmartCaptcha.
  * Solution: {@link CoordinatesSolution}.
+ * @example `new Tasks.CoordinatesTask({ body: imageBase64, comment: 'Click the buses' })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#coordinates
  */
@@ -631,6 +644,7 @@ export interface TencentTaskParams extends TencentTaskProxylessParams, ProxyPara
 /**
  * Tencent Captcha without a proxy (`TencentTaskProxyless`).
  * Solution: {@link TencentSolution}.
+ * @example `new Tasks.TencentTaskProxyless({ websiteURL, appId })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#tencent
  */
@@ -643,6 +657,7 @@ export class TencentTaskProxyless extends BaseTask<TencentSolution> {
 /**
  * Tencent Captcha solved through your own proxy (`TencentTask`).
  * Solution: {@link TencentSolution}.
+ * @example `new Tasks.TencentTask({ websiteURL, appId, proxyType, proxyAddress, proxyPort })`
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#tencent
  */

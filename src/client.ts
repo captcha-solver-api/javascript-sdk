@@ -120,6 +120,10 @@ export class CaptchaClient {
    * @throws {ApiError} If the API rejected the task.
    * @throws {TimeoutError} If the request exceeded {@link timeout}.
    * @throws {NetworkError} On a transport failure.
+   * @example
+   * ```ts
+   * const taskId = await client.createTask(task);
+   * ```
    */
   async createTask(task: BaseTask, languagePool: string | null = null): Promise<number> {
     const payload: Record<string, unknown> = { clientKey: this.clientKey, task: task.toDict() }; if (languagePool !== null) payload.languagePool = languagePool;
@@ -137,6 +141,10 @@ export class CaptchaClient {
    * @throws {ApiError} If the task failed on the API side.
    * @throws {TimeoutError} If the request exceeded {@link timeout}.
    * @throws {NetworkError} On a transport failure.
+   * @example
+   * ```ts
+   * const result = await client.getTaskResult(taskId);
+   * ```
    */
   getTaskResult(taskId: number): Promise<TaskResult> { return this._request('/getTaskResult', { clientKey: this.clientKey, taskId }); }
 
@@ -147,6 +155,10 @@ export class CaptchaClient {
    * @throws {ApiError} If the API key is invalid.
    * @throws {TimeoutError} If the request exceeded {@link timeout}.
    * @throws {NetworkError} On a transport failure.
+   * @example
+   * ```ts
+   * const balance = await client.getBalance();
+   * ```
    */
   async getBalance(): Promise<number> { return Number((await this._request('/getBalance', { clientKey: this.clientKey })).balance); }
 
@@ -164,6 +176,10 @@ export class CaptchaClient {
    * @throws {TimeoutError} If no solution arrived within {@link timeout}.
    * @throws {ApiError} If the API rejected the task or the task failed while solving.
    * @throws {NetworkError} On a transport failure.
+   * @example
+   * ```ts
+   * client.solve(task).then(console.log).catch(console.error);
+   * ```
    */
   async solve<T extends BaseTask<any>>(task: T, languagePool: string | null = null): Promise<SolutionOf<T>> {
     const taskId = await this.createTask(task, languagePool); const startedAt = Date.now();
