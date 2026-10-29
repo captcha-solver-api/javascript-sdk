@@ -276,6 +276,10 @@ as reCAPTCHA v2, plus:
 | `enterprisePayload` | no | Extra parameters passed to `grecaptcha.enterprise.render` on the page, e.g. `{ s: '...' }`. |
 | `apiDomain` | no | Defaults to `google.com`. |
 
+> **Important:** If the page passes values such as `s` to
+> `grecaptcha.enterprise.render`, include them in `enterprisePayload`. A token
+> created without the page's payload can be rejected by the target website.
+
 **Response fields**
 
 - `gRecaptchaResponse` — submit this token to the Enterprise reCAPTCHA callback.
@@ -393,6 +397,9 @@ browser session involved.
 | `minLength` / `maxLength` | no | Expected answer length bounds. |
 | `comment` | no | Free-text hint for the worker. |
 | `imgInstructions` | no | Optional supplementary instruction image, base64-encoded. |
+
+> **Important:** Pass only the raw base64 data in `body` and
+> `imgInstructions`. Remove prefixes such as `data:image/png;base64,`.
 
 **Response fields**
 

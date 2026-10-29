@@ -86,8 +86,9 @@ export interface TurnstileSolution {
   /** Token to submit as `cf-turnstile-response`. */
   token: string;
   /**
-   * User-Agent the worker actually solved with. The token is tied to it,
-   * so submit the token with this exact User-Agent.
+   * User-Agent reported by the solving service, when present. For Cloudflare
+   * Challenge pages, keep using the browser User-Agent sent in the task; do
+   * not replace it with this returned value.
    */
   userAgent: string;
   [key: string]: unknown;
