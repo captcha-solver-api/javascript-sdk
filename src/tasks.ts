@@ -553,7 +553,6 @@ export interface CoordinatesTaskParams {
 
 /**
  * Click captcha: the worker marks points in an image (`CoordinatesTask`).
- * Used for generic "click on X" captchas and the image version of Yandex SmartCaptcha.
  * Solution: {@link CoordinatesSolution}.
  *
  * @see https://captcha-solver.com/en/docs/captcha-types#coordinates
@@ -561,6 +560,35 @@ export interface CoordinatesTaskParams {
 export class CoordinatesTask extends BaseTask<CoordinatesSolution> {
   constructor({ body, comment = null, imgInstructions = null, minClicks = null, maxClicks = null }: CoordinatesTaskParams) {
     super({ type: 'CoordinatesTask', body, comment, imgInstructions, minClicks, maxClicks });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Yandex SmartCaptcha image                                          */
+/* ------------------------------------------------------------------ */
+
+/** Parameters of {@link YandexSmartCaptchaImageTask}. */
+export interface YandexSmartCaptchaImageTaskParams {
+  /** The main SmartCaptcha challenge image, base64-encoded. */
+  image: string;
+  /** The SmartCaptcha click-order instruction image, base64-encoded. */
+  imgInstructions: string;
+  /** Optional text hint shown to the worker. */
+  comment?: string | null;
+}
+
+/**
+ * Image-based Yandex SmartCaptcha challenge.
+ *
+ * Serialized as the API v2 `SmartCaptchaTask`. Coordinates are returned in
+ * the order in which the symbols must be clicked.
+ * Solution: {@link CoordinatesSolution}.
+ *
+ * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
+ */
+export class YandexSmartCaptchaImageTask extends BaseTask<CoordinatesSolution> {
+  constructor({ image, imgInstructions, comment = null }: YandexSmartCaptchaImageTaskParams) {
+    super({ type: 'SmartCaptchaTask', image, imgInstructions, comment });
   }
 }
 

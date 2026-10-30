@@ -78,6 +78,7 @@ twice the balance.
 | GeeTest v3 | [geetest_v3.js](async/geetest_v3.js) | [geetest_v3.js](sync/geetest_v3.js) | `GeeTestProxyless`, `GeeTest` | `challenge`, `validate`, `seccode` |
 | GeeTest v4 | [geetest_v4.js](async/geetest_v4.js) | [geetest_v4.js](sync/geetest_v4.js) | `GeeTestProxyless`, `GeeTest` | `captcha_id`, `lot_number`, `pass_token`, `gen_time`, `captcha_output` |
 | Yandex SmartCaptcha | [yandex_smartcaptcha.js](async/yandex_smartcaptcha.js) | [yandex_smartcaptcha.js](sync/yandex_smartcaptcha.js) | `YandexSmartCaptchaTaskProxyless`, `YandexSmartCaptchaTask` | `token` |
+| Yandex SmartCaptcha Image | [yandex_smartcaptcha_image.js](async/yandex_smartcaptcha_image.js) | [yandex_smartcaptcha_image.js](sync/yandex_smartcaptcha_image.js) | `YandexSmartCaptchaImageTask` | `coordinates` |
 | Tencent | [tencent.js](async/tencent.js) | [tencent.js](sync/tencent.js) | `TencentTaskProxyless`, `TencentTask` | `appid`, `ret`, `ticket`, `randstr` |
 | Image to Text | [image_to_text.js](async/image_to_text.js) | [image_to_text.js](sync/image_to_text.js) | `ImageToText` | `text` |
 | Coordinates (click) | [coordinates.js](async/coordinates.js) | [coordinates.js](sync/coordinates.js) | `CoordinatesTask` | `coordinates` |
