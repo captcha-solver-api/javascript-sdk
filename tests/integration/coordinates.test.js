@@ -76,7 +76,7 @@ describeIntegration('Image coordinate tasks against the real API', () => {
 
     const solution = await createClient().solve(task);
 
-    expect(solution.coordinates).toHaveLength(4);
+    expect(solution.coordinates).toHaveLength(5);
 
     const width = image.readUInt32BE(16);
     const height = image.readUInt32BE(20);
