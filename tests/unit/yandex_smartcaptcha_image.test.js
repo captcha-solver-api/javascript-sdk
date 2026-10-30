@@ -1,20 +1,18 @@
 import { Tasks } from '@captcha-solver-api/javascript-sdk';
 
 describe('YandexSmartCaptchaImageTask', () => {
-  test('serializes as a coordinates task with both images', () => {
+  test('serializes as an API v2 SmartCaptchaTask with both images', () => {
     const task = new Tasks.YandexSmartCaptchaImageTask({
-      body: 'captcha-image',
+      image: 'captcha-image',
       imgInstructions: 'instruction-image',
-      minClicks: 4,
-      maxClicks: 4
+      comment: 'click the symbols in the specified order'
     });
 
     expect(task.toDict()).toEqual({
-      type: 'CoordinatesTask',
-      body: 'captcha-image',
+      type: 'SmartCaptchaTask',
+      image: 'captcha-image',
       imgInstructions: 'instruction-image',
-      minClicks: 4,
-      maxClicks: 4
+      comment: 'click the symbols in the specified order'
     });
   });
 });

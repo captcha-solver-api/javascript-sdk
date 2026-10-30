@@ -7,7 +7,7 @@ const captchaSolver = new CaptchaClient({
   clientKey: process.env.CAPTCHA_API_KEY || 'YOUR_API_KEY'
 });
 
-const body = fs.readFileSync(
+const image = fs.readFileSync(
   new URL('../assets/yandex-smartcaptcha-image.png', import.meta.url)
 ).toString('base64');
 const imgInstructions = fs.readFileSync(
@@ -16,10 +16,8 @@ const imgInstructions = fs.readFileSync(
 
 try {
   const task = new Tasks.YandexSmartCaptchaImageTask({
-    body,
-    imgInstructions,
-    minClicks: 4,
-    maxClicks: 4
+    image,
+    imgInstructions
   });
   const result = await captchaSolver.solve(task);
   console.log('Coordinates in click order:', result.coordinates);

@@ -34,7 +34,7 @@ const yandexInstructionsPath = new URL(
 // because nothing guarantees they read the text baked into the image.
 const comment = 'click on all squares with street signs';
 
-describeIntegration('Coordinates against the real API', () => {
+describeIntegration('Image coordinate tasks against the real API', () => {
   test('solve returns the clicked points', async () => {
     const image = fs.readFileSync(imagePath);
 
@@ -70,10 +70,8 @@ describeIntegration('Coordinates against the real API', () => {
     const image = fs.readFileSync(yandexImagePath);
     const instructions = fs.readFileSync(yandexInstructionsPath);
     const task = new Tasks.YandexSmartCaptchaImageTask({
-      body: image.toString('base64'),
-      imgInstructions: instructions.toString('base64'),
-      minClicks: 4,
-      maxClicks: 4
+      image: image.toString('base64'),
+      imgInstructions: instructions.toString('base64')
     });
 
     const solution = await createClient().solve(task);

@@ -155,10 +155,7 @@ directory** and the script runs as-is. Solution: `text`.
 Three chains, no proxy variant, all active. *Basic* (`basicTask`) submits the shipped grid captcha
 (`coordinates-captcha.png`) plus a `comment` telling the worker what to click. *Advanced*
 (`advancedTask`) solves a different image, a real traffic-lights photo (`traffic-lights.png`), with
-`traffic-lights-instructions.png` as `imgInstructions` and `minClicks`/`maxClicks` limits. *Yandex
-SmartCaptcha image mode* (`yandexTask`) reuses the same `CoordinatesTask` with
-click-order hint is baked into the image itself, so no separate `imgInstructions` is passed — this is
-how the image variant of Yandex SmartCaptcha is solved.
+`traffic-lights-instructions.png` as `imgInstructions` and `minClicks`/`maxClicks` limits.
 
 Reads its images via
 `new URL(..., import.meta.url)`, so the path holds **regardless of the working directory** and the
