@@ -53,6 +53,7 @@ tests/
     ├── turnstile.test.js
     ├── geetest_v4.test.js
     ├── yandex_smartcaptcha.test.js
+    ├── yandex_smartcaptcha_image.test.js
     └── tencent.test.js
 ```
 
@@ -182,6 +183,7 @@ The only set that talks to the real API at `https://api.captcha-solver.com`. One
 | `turnstile.test.js` | `token` | `TURNSTILE_URL`, `TURNSTILE_SITE_KEY` | 130 s | **yes** |
 | `geetest_v4.test.js` | `captcha_output`, `lot_number`, `pass_token` | `GEETEST_V4_URL`, `GEETEST_V4_CAPTCHA_ID` | 310 s | **yes** |
 | `yandex_smartcaptcha.test.js` | `token` | `YANDEX_SMARTCAPTCHA_URL`, `YANDEX_SMARTCAPTCHA_SITE_KEY` | 130 s | **yes** |
+| `yandex_smartcaptcha_image.test.js` | `coordinates` in click order | — (images ship with the repo) | 130 s | **yes** |
 | `tencent.test.js` | `ticket`, `randstr` | `TENCENT_URL`, `TENCENT_APP_ID` | 130 s | **yes** |
 
 The split follows **cost, not captcha type**. `balance.test.js` costs nothing and depends on nothing, which makes it a fine smoke test for "the key is alive, the network is up":
@@ -200,9 +202,9 @@ The identifier differs per vendor: a sitekey for reCAPTCHA, Turnstile and Yandex
 
 The practical consequence: **a fresh clone has no working integration check other than the balance one**. That is the price of the decision, not an oversight. Put your own targets in `.env` (it is gitignored); the template with the variable names is [.env.example](../.env.example).
 
-The exception is the two image-based tests, `image_to_text.test.js` and `coordinates.test.js`. They need neither a page nor a widget identifier, only an image, and the images ship with the repository — [text-captcha.png](../examples/assets/text-captcha.png) and [coordinates-captcha.png](../examples/assets/coordinates-captcha.png). Both work out of the box; a key is all it takes.
+The exception is the three image-based tests, `image_to_text.test.js`, `coordinates.test.js` and `yandex_smartcaptcha_image.test.js`. They need neither a page nor a widget identifier, only an image, and the images ship with the repository — [text-captcha.png](../examples/assets/text-captcha.png) and [coordinates-captcha.png](../examples/assets/coordinates-captcha.png), [yandex-smartcaptcha-image.png](../examples/assets/yandex-smartcaptcha-image.png) with [yandex-smartcaptcha-instructions.png](../examples/assets/yandex-smartcaptcha-instructions.png). All of them work out of the box; a key is all it takes.
 
-The tests deliberately have no fixtures directory of their own: the very same images are what the `image_to_text.js` and `coordinates.js` examples feed to the API, and one shared copy cannot drift from a second one. The path in the test is resolved through `new URL(..., import.meta.url)`, i.e. relative to the test file itself rather than the working directory.
+The tests deliberately have no fixtures directory of their own: the very same images are what the `image_to_text.js`, `coordinates.js` and `yandex_smartcaptcha_image.js` examples feed to the API, and one shared copy cannot drift from a second one. The path in the test is resolved through `new URL(..., import.meta.url)`, i.e. relative to the test file itself rather than the working directory.
 
 In `coordinates.test.js` the image bounds are not hard-coded: width and height are read from the PNG's own IHDR chunk, so the "point lies inside the image" assertion stays correct even if the sample is swapped out.
 
@@ -210,7 +212,7 @@ The image used to be passed through an `IMAGE_TO_TEXT_BASE64` variable in `.env.
 
 ### What is not covered here
 
-- **GeeTest v3.** It needs a fresh session-bound `challenge` scraped from the target page immediately before the task is created. That cannot be driven from static configuration; it would take a scraper, as in [examples/async/geetest_v3.js](../examples/async/geetest_v3.js).
+- **GeeTest v3.** It needs a fresh session-bound `challenge` scraped from the target page immediately before the task is created. That cannot be driven from static configuration; it would take a scraper, as in [examples/geetest_v3.js](../examples/geetest_v3.js).
 - **The proxy variants and reCAPTCHA v2 Enterprise.** They need a working proxy and a site with an Enterprise widget respectively.
 - **Cloudflare Challenge pages** in `turnstile.test.js` — only the ordinary widget is covered. Challenge pages need fresh `action`, `data` and `pagedata` pulled off the page.
 
@@ -417,7 +419,7 @@ The configuration is [.github/workflows/tests.yml](../.github/workflows/tests.ym
 
 ### What the nightly run actually checks
 
-The `integration` job passes only `CAPTCHA_API_KEY` to the tests. It has no target variables, so among the paid suites everything skips except the two image-based ones — `image_to_text.test.js` and `coordinates.test.js`: they need no targets, and with a live key they **really do hit the API and spend balance**. `recaptcha_v2.test.js` used to work off a hard-coded Google demo page; after targets were dropped from the repository (see [above](#why-the-repository-carries-no-targets)) that is no longer the case.
+The `integration` job passes only `CAPTCHA_API_KEY` to the tests. It has no target variables, so among the paid suites everything skips except the three image-based ones — `image_to_text.test.js`, `coordinates.test.js` and `yandex_smartcaptcha_image.test.js`: they need no targets, and with a live key they **really do hit the API and spend balance**. `recaptcha_v2.test.js` used to work off a hard-coded Google demo page; after targets were dropped from the repository (see [above](#why-the-repository-carries-no-targets)) that is no longer the case.
 
 So **every night costs two tasks**, one per image. That is the price of the nightly run checking `solve()` at all, rather than the balance alone, which is all it used to check. If that spend is unwanted, the simplest fix is to narrow the step to specific files: `npm test -- tests/integration/balance.test.js`.
 

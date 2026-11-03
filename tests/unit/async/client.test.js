@@ -25,6 +25,7 @@ describe('CaptchaClient (async)', () => {
 
   test('throws ValidationError when clientKey is missing', () => {
     expect(() => new CaptchaClient({})).toThrow(ValidationError);
+    expect(() => new CaptchaClient()).toThrow(ValidationError);
   });
 
   test('sends the SDK version header', async () => {
@@ -35,7 +36,7 @@ describe('CaptchaClient (async)', () => {
     });
 
     await client.getBalance();
-    expect(requestOptions.headers['X-SDK']).toBe('javascript-sdk/1.0.1');
+    expect(requestOptions.headers['X-SDK']).toBe('javascript-sdk/1.1.0');
   });
 
   test('aborts an HTTP request after timeout', async () => {
