@@ -3,6 +3,9 @@ import { Tasks, ValidationError } from '@captcha-solver-api/javascript-sdk';
 describe('built-in task validation', () => {
   test('missing constructor arguments produce SDK validation errors', () => {
     expect(() => new Tasks.ImageToText()).toThrow(ValidationError);
+    expect(() => new Tasks.YandexSmartCaptchaImageTask()).toThrow(
+      'SmartCaptchaTask requires: image, imgInstructions'
+    );
     expect(() => new Tasks.RecaptchaV2Proxyless()).toThrow(
       'RecaptchaV2TaskProxyless requires: websiteURL, websiteKey'
     );
@@ -17,6 +20,8 @@ describe('built-in task validation', () => {
     ['ImageToText', {}, 'body'],
     ['YandexSmartCaptchaTaskProxyless', { websiteURL: 'https://example.com' }, 'websiteKey'],
     ['CoordinatesTask', { body: '   ' }, 'body'],
+    ['YandexSmartCaptchaImageTask', {}, 'image, imgInstructions'],
+    ['YandexSmartCaptchaImageTask', { image: 'image', imgInstructions: '' }, 'imgInstructions'],
     ['TencentTaskProxyless', { websiteURL: 'https://example.com' }, 'appId']
   ])('%s reports missing required parameters', (className, params, expected) => {
     expect(() => new Tasks[className](params)).toThrow(ValidationError);

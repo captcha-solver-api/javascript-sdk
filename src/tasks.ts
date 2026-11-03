@@ -14,6 +14,7 @@ const REQUIRED_TASK_PARAMS: Record<string, readonly string[]> = {
   YandexSmartCaptchaTaskProxyless: ['websiteURL', 'websiteKey'],
   YandexSmartCaptchaTask: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
   CoordinatesTask: ['body'],
+  SmartCaptchaTask: ['image', 'imgInstructions'],
   TencentTaskProxyless: ['websiteURL', 'appId'],
   TencentTask: ['websiteURL', 'appId', 'proxyType', 'proxyAddress', 'proxyPort']
 };
@@ -568,7 +569,7 @@ export interface YandexSmartCaptchaTaskParams extends YandexSmartCaptchaTaskProx
 
 /**
  * Token-based Yandex SmartCaptcha without a proxy (`YandexSmartCaptchaTaskProxyless`).
- * For the image challenge use {@link CoordinatesTask} instead.
+ * For the image challenge use {@link YandexSmartCaptchaImageTask} instead.
  * Solution: {@link YandexSmartCaptchaSolution}.
  * @example `new Tasks.YandexSmartCaptchaTaskProxyless({ websiteURL, websiteKey })`
  *
@@ -648,7 +649,7 @@ export interface YandexSmartCaptchaImageTaskParams {
  * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
  */
 export class YandexSmartCaptchaImageTask extends BaseTask<CoordinatesSolution> {
-  constructor({ image, imgInstructions, comment = null }: YandexSmartCaptchaImageTaskParams) {
+  constructor({ image, imgInstructions, comment = null }: YandexSmartCaptchaImageTaskParams = {} as YandexSmartCaptchaImageTaskParams) {
     super({ type: 'SmartCaptchaTask', image, imgInstructions, comment });
   }
 }
