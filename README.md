@@ -124,6 +124,7 @@ on the target page.
 | GeeTest v4 | ✅ | ✅ |
 | Image to Text | ✅ | — |
 | Yandex SmartCaptcha | ✅ | ✅ |
+| Yandex SmartCaptcha Image | ✅ | — |
 | Coordinates (click captcha) | ✅ | — |
 | Tencent | ✅ | ✅ |
 
@@ -486,10 +487,10 @@ With proxy, use `Tasks.GeeTest` (same proxy fields as reCAPTCHA v2).
 <sup>[API method description.](https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha)</sup>
 
 Use this method to solve the token-based Yandex SmartCaptcha and obtain a token
-for the widget on the target page. Use the coordinates method for image challenges.
+for the widget on the target page. Use the dedicated image method for image challenges.
 
 `Tasks.YandexSmartCaptchaTaskProxyless` / `Tasks.YandexSmartCaptchaTask` -- token-based
-challenge. For the image challenge instead, use `Tasks.CoordinatesTask` with
+challenge.
 
 | Field | Required | Description |
 |---|---|---|
@@ -520,15 +521,43 @@ captchaSolver.solve(task)
 With proxy, use `Tasks.YandexSmartCaptchaTask` (same proxy fields as reCAPTCHA v2,
 plus the `https` option above).
 
+#### Image challenge
+
+Use `Tasks.YandexSmartCaptchaImageTask` when SmartCaptcha shows a main image and
+a separate strip indicating the symbols to click. Encode both images as base64;
+the SDK sends API v2 type `SmartCaptchaTask`, and the returned coordinates are
+already ordered for clicking.
+
+| Field | Required | Description |
+|---|---|---|
+| `image` | yes | Main captcha image, base64-encoded. |
+| `imgInstructions` | yes | Click-order instruction image, base64-encoded. |
+| `comment` | no | Optional text hint for the worker. |
+
+```javascript
+import fs from 'node:fs';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
+
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
+const task = new Tasks.YandexSmartCaptchaImageTask({
+  image: fs.readFileSync('captcha.png').toString('base64'),
+  imgInstructions: fs.readFileSync('instructions.png').toString('base64')
+});
+captchaSolver.solve(task)
+  .then((solution) => console.log(solution.coordinates))
+  .catch(console.error);
+```
+
+See the runnable example in
+[examples/yandex_smartcaptcha_image.js](examples/yandex_smartcaptcha_image.js).
+
 ### Coordinates (click captcha)
 
 <sup>[API method description.](https://captcha-solver.com/en/docs/captcha-types#coordinates)</sup>
 
-Use this method to identify points that a worker should click in an image. It
-supports generic click captchas and the image version of Yandex SmartCaptcha.
+Use this method to identify points that a worker should click in a generic image.
 
-`Tasks.CoordinatesTask`. Used both for generic "click on X" captchas and for
-directly.
+`Tasks.CoordinatesTask`.
 
 | Field | Required | Description |
 |---|---|---|

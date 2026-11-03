@@ -9,7 +9,7 @@
  * v4 is covered but v3 is not, and that is a deliberate gap: v3 needs a fresh,
  * session-specific `challenge` fetched from the target immediately before the
  * task is created. A hardcoded one is stale on arrival, so a v3 test would
- * have to scrape the target first -- see examples/async/geetest_v3.js for what
+ * have to scrape the target first -- see examples/geetest_v3.js for what
  * that looks like. v4 identifies the widget by captcha_id, which is stable.
  */
 

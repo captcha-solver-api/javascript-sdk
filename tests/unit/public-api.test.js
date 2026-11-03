@@ -30,6 +30,7 @@ const TASK_CLASSES = [
   'YandexSmartCaptchaTaskProxyless',
   'YandexSmartCaptchaTask',
   'CoordinatesTask',
+  'YandexSmartCaptchaImageTask',
   'TencentTaskProxyless',
   'TencentTask'
 ];
