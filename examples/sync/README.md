@@ -35,6 +35,7 @@ Errors are handled per chain with a trailing `.catch()`; a failing block does no
 | [geetest_v3.js](geetest_v3.js) | Fetches a fresh `challenge`, then solves GeeTest v3 | one nested chain |
 | [geetest_v4.js](geetest_v4.js) | Solves GeeTest v4 via `captcha_id` | Proxyless · With proxy |
 | [yandex_smartcaptcha.js](yandex_smartcaptcha.js) | Solves Yandex SmartCaptcha (token challenge) | Proxyless · With proxy |
+| [yandex_smartcaptcha_image.js](yandex_smartcaptcha_image.js) | Solves Yandex SmartCaptcha image challenge | single chain |
 | [tencent.js](tencent.js) | Solves a Tencent captcha | Proxyless · With proxy |
 | [image_to_text.js](image_to_text.js) | Recognises text on a captcha image | Basic · Advanced · With language pool |
 
@@ -154,10 +155,7 @@ directory** and the script runs as-is. Solution: `text`.
 Three chains, no proxy variant, all active. *Basic* (`basicTask`) submits the shipped grid captcha
 (`coordinates-captcha.png`) plus a `comment` telling the worker what to click. *Advanced*
 (`advancedTask`) solves a different image, a real traffic-lights photo (`traffic-lights.png`), with
-`traffic-lights-instructions.png` as `imgInstructions` and `minClicks`/`maxClicks` limits. *Yandex
-SmartCaptcha image mode* (`yandexTask`) reuses the same `CoordinatesTask` with
-click-order hint is baked into the image itself, so no separate `imgInstructions` is passed — this is
-how the image variant of Yandex SmartCaptcha is solved.
+`traffic-lights-instructions.png` as `imgInstructions` and `minClicks`/`maxClicks` limits.
 
 Reads its images via
 `new URL(..., import.meta.url)`, so the path holds **regardless of the working directory** and the
