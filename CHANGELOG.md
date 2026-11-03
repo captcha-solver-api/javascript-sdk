@@ -2,6 +2,49 @@
 
 All notable changes are documented here.
 
+## [1.1.0] - 2026-11-03
+
+### Added
+
+- add Yandex SmartCaptcha image support
+
+### Fixed
+
+- validate Yandex SmartCaptcha image task parameters
+- send Yandex image captcha as SmartCaptchaTask
+- validate omitted constructor options
+- validate required task parameters
+- link package homepage to product site
+
+### Documentation
+
+- use promise chains in all examples
+- clarify critical captcha integration notes
+- add JSDoc usage examples
+- split and standardize promise examples
+- clarify solution response fields
+- link example names in requirements table
+- add security policy
+- remove long polling interval from geetest examples
+- clarify captcha types without proxy variants
+- add AI integration guide
+- link Selenium Python examples
+- add useful repository links
+- add Turnstile Puppeteer demo link
+- update changelog for v1.0.1
+
+### Maintenance
+
+- set version to 1.1.0
+- fix brace-expansion audit vulnerability
+- refresh Yandex SmartCaptcha sample assets
+- cover Yandex SmartCaptcha image integration
+- run integration tests on pull requests
+- test against Node.js 24
+
+[Full diff](https://github.com/captcha-solver-api/javascript-sdk/compare/v1.0.1...v1.1.0)
+
+
 ## [1.0.1] - 2026-09-29
 
 ### Fixed
