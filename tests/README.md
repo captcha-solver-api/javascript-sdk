@@ -414,7 +414,7 @@ The configuration is [.github/workflows/tests.yml](../.github/workflows/tests.ym
 
 ### Why the jobs are split
 
-- **Unit tests are the mandatory blocking step.** Deterministic, no network, no secrets, a couple of seconds. Safe on any PR, forks included. They run on a Node `18 / 20 / 22` matrix, matching `engines.node: ">=18"`.
+- **Unit tests are the mandatory blocking step.** Deterministic, no network, no secrets, a couple of seconds. Safe on any PR, forks included. They run on a Node `18 / 20 / 22 / 24 / 26` matrix, matching `engines.node: ">=18"`.
 - **Integration tests deliberately do not run on pull requests.** They spend real account balance and depend on an external API being up. More importantly, secrets are unavailable in a PR from a fork, so the tests would skip themselves and produce a **false green** instead of an honest "not checked".
 
 ### What the nightly run actually checks

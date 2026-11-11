@@ -12,12 +12,12 @@ on:
 jobs:
   unit:
     name: Unit (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         # Matches engines.node: ">=18" in package.json
-        node-version: [18, 20, 22, 24]
+        node-version: [18, 20, 22, 24, 26]
 
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
     # checks. GitHub does not expose repository secrets to pull requests from
     # forks, so those runs fail at the explicit secret check below instead of
     # producing a false-green result.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
