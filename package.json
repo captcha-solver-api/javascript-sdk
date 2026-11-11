@@ -26,11 +26,12 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts src/tasks.ts src/exceptions.ts --format esm,cjs --dts --clean",
+    "build:test": "npm run build -- --sourcemap",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:unit": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
-    "test:integration": "npm run build && node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration",
-    "prepublishOnly": "npm run test:unit -- --runInBand"
+    "test": "npm run build:test && node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:unit": "npm run build:test && node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
+    "test:integration": "npm run build:test && node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration",
+    "prepublishOnly": "npm run test:unit -- --runInBand && npm run build"
   },
   "keywords": [
     "captcha-solver",

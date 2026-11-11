@@ -5,8 +5,11 @@
 ```bash
 npm ci
 npm test -- --runInBand
+npm run build
 npm pack --dry-run
 ```
+
+Tests build `dist/` with source maps for coverage. Run `npm run build` before `npm pack` so the package contains no `.map` files. `npm publish` does this automatically via `prepublishOnly`.
 
 Real API tests require `CAPTCHA_API_KEY` and the target variables documented in `tests/README.md`:
 

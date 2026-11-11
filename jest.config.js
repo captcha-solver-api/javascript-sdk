@@ -9,9 +9,14 @@
 export default {
   testEnvironment: 'node',
 
-  // Collect coverage from every file in src/, not just the ones imported
-  // by tests. Otherwise a new file that nothing imports yet would silently
-  // drop out of the report instead of showing up as 0%.
+  // Tests import the built package from dist/, so that is what gets
+  // instrumented. `npm run build:test` emits source maps, which map the
+  // report back to src/*.ts instead of hashed dist/chunk-*.js files.
+  //
+  // Only the ESM build (*.js) is listed: the CommonJS build (*.cjs) is loaded
+  // through Node's native require() and is never instrumented by Jest, so
+  // listing it would only add bogus 0% entries. public-api.test.js covers it
+  // with smoke tests instead.
   collectCoverageFrom: ['dist/**/*.js'],
 
   // text -- console output, lcov -- for uploading to Coveralls.
