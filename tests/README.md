@@ -410,18 +410,18 @@ The configuration is [.github/workflows/tests.yml](../.github/workflows/tests.ym
 | Job | Command | When it runs | Secrets |
 |---|---|---|---|
 | `unit` | `npm run test:unit -- --coverage` | push to `main`, any pull request, schedule, manual dispatch | none |
-| `integration` | `npm run test:integration` | **only** on schedule (daily at 03:00 UTC) and manually via workflow_dispatch | `CAPTCHA_API_KEY` |
+| `integration` | `npm run test:integration` | push to `main`, any pull request, schedule (daily at 03:00 UTC), manual dispatch | `CAPTCHA_API_KEY` |
 
 ### Why the jobs are split
 
 - **Unit tests are the mandatory blocking step.** Deterministic, no network, no secrets, a couple of seconds. Safe on any PR, forks included. They run on a Node `18 / 20 / 22 / 24 / 26` matrix, matching `engines.node: ">=18"`.
-- **Integration tests deliberately do not run on pull requests.** They spend real account balance and depend on an external API being up. More importantly, secrets are unavailable in a PR from a fork, so the tests would skip themselves and produce a **false green** instead of an honest "not checked".
+- **Integration tests also run on pull requests**, so a change that breaks the real API flow is caught before merge. The cost is real account balance on every run and a dependency on the external API being up. Secrets are unavailable in a PR from a fork, so there the job **fails** at the fail-early step (see below) instead of skipping the tests and producing a false green.
 
 ### What the nightly run actually checks
 
 The `integration` job passes only `CAPTCHA_API_KEY` to the tests. It has no target variables, so among the paid suites everything skips except the three image-based ones — `image_to_text.test.js`, `coordinates.test.js` and `yandex_smartcaptcha_image.test.js`: they need no targets, and with a live key they **really do hit the API and spend balance**. `recaptcha_v2.test.js` used to work off a hard-coded Google demo page; after targets were dropped from the repository (see [above](#why-the-repository-carries-no-targets)) that is no longer the case.
 
-So **every night costs two tasks**, one per image. That is the price of the nightly run checking `solve()` at all, rather than the balance alone, which is all it used to check. If that spend is unwanted, the simplest fix is to narrow the step to specific files: `npm test -- tests/integration/balance.test.js`.
+So **every run costs two tasks**, one per image - nightly, on every push to `main` and on every push to a pull request. That is the price of CI checking `solve()` at all, rather than the balance alone, which is all it used to check. If that spend is unwanted, the simplest fix is to narrow the step to specific files: `npm test -- tests/integration/balance.test.js`.
 
 The remaining target-driven solve tests are not planned for CI yet. When they are wanted, the order is:
 
