@@ -450,5 +450,4 @@ Without it a missing key would look like a successful run: the tests skip themse
 ### What the pipeline does not have yet
 
 - A lint step — no linter is configured in the project.
-- Publishing to npm.
 - Badges in the README — tracked in [todo.md](../todo.md) together with wiring up Coveralls (which needs action in a web UI).
