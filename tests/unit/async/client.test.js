@@ -265,3 +265,94 @@ describe('CaptchaClient (async)', () => {
     await expect(client.createTask(task)).rejects.toThrow(NetworkError);
   });
 });
+
+describe('CaptchaClient error edge cases (async)', () => {
+  let client;
+
+  const task = () => new Tasks.RecaptchaV2Proxyless({
+    websiteURL: 'https://example.com',
+    websiteKey: 'test_key'
+  });
+
+  const respond = (body) => jest.fn(() => Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve(body)
+  }));
+
+  beforeEach(() => {
+    client = new CaptchaClient({
+      clientKey: 'test_key',
+      timeout: 5000,
+      pollingInterval: 10
+    });
+  });
+
+  test('throws NetworkError on a non-2xx HTTP status without reading the body', async () => {
+    const json = jest.fn();
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: false,
+      status: 502,
+      statusText: 'Bad Gateway',
+      json
+    }));
+
+    const error = await client.createTask(task()).catch((e) => e);
+    expect(error).toBeInstanceOf(NetworkError);
+    expect(error.message).toBe('HTTP error: 502 Bad Gateway');
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  test('throws NetworkError when the response body is not valid JSON', async () => {
+    const parseError = new SyntaxError('Unexpected token < in JSON at position 0');
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.reject(parseError)
+    }));
+
+    const error = await client.getBalance().catch((e) => e);
+    expect(error).toBeInstanceOf(NetworkError);
+    expect(error).not.toBeInstanceOf(ApiError);
+    expect(error.message).toBe(parseError.message);
+    expect(error.originalError).toBe(parseError);
+  });
+
+  test('wraps a non-Error rejection into NetworkError', async () => {
+    global.fetch = jest.fn(() => Promise.reject('connection reset'));
+
+    const error = await client.getBalance().catch((e) => e);
+    expect(error).toBeInstanceOf(NetworkError);
+    expect(error.message).toBe('connection reset');
+    expect(error.originalError).toBe('connection reset');
+  });
+
+  test('ApiError falls back to UNKNOWN_ERROR when the API sends no details', async () => {
+    global.fetch = respond({ errorId: 1 });
+
+    const error = await client.createTask(task()).catch((e) => e);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.errorCode).toBe('UNKNOWN_ERROR');
+    expect(error.errorDescription).toBe('Unknown API error');
+  });
+
+  test('ApiError uses the "error" field when errorDescription is absent', async () => {
+    global.fetch = respond({ errorId: 1, errorCode: 'ERROR_ZERO_BALANCE', error: 'No funds' });
+
+    const error = await client.createTask(task()).catch((e) => e);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.errorCode).toBe('ERROR_ZERO_BALANCE');
+    expect(error.errorDescription).toBe('No funds');
+  });
+
+  test('solve returns an empty object when a ready result has no solution', async () => {
+    let callCount = 0;
+    global.fetch = jest.fn(() => {
+      callCount++;
+      const body = callCount === 1
+        ? { errorId: 0, taskId: 12345 }
+        : { errorId: 0, status: 'ready' };
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(body) });
+    });
+
+    await expect(client.solve(task())).resolves.toEqual({});
+  });
+});
