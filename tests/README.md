@@ -388,20 +388,20 @@ Current state:
 
 ```
 File           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
-All files      |   97.53 |    83.63 |     100 |    97.5 |
- client.js     |   95.45 |    80.76 |     100 |   95.34 | 35,53
- exceptions.js |     100 |      100 |     100 |     100 |
- index.js      |     100 |      100 |     100 |     100 |
- tasks.js      |     100 |    84.52 |     100 |     100 | 26,38,71-77,89,107
+All files      |    98.4 |     87.5 |     100 |     100 |
+ client.ts     |   97.67 |    96.66 |     100 |     100 | 195
+ exceptions.ts |     100 |      100 |     100 |     100 |
+ tasks.ts      |   98.41 |    85.08 |     100 |     100 | 28,232,284-493,579-623,682-695
+ version.ts    |     100 |      100 |     100 |     100 |
 ```
 
-What is uncovered: the HTTP error branch (`!response.ok`) and the `AbortError` handling in `_request()`, plus some default parameter values in the task constructors.
+What is uncovered: the second timeout check in `solve()` (it needs fake timers to hit) and default parameter values in the task constructors.
 
 The figure counts **unit tests only**. Integration is deliberately left out: without a key those suites skip, and the number would swing depending on whether `CAPTCHA_API_KEY` happened to be available.
 
 Two settings in [jest.config.js](../jest.config.js) matter specifically for coverage:
 
-- `collectCoverageFrom: ['dist/**/*.{js,cjs}']` — count every JavaScript file in the built `dist/` package, including the public entry point, even when a test does not import it directly.
+- `collectCoverageFrom: ['dist/**/*.js']` — instrument the built ESM package in `dist/`, since that is what the tests import. `npm run build:test` emits source maps, so the report is mapped back to `src/*.ts` instead of hashed `dist/chunk-*.js` files, and the file list stays stable in Coveralls. The CommonJS build (`*.cjs`) is loaded through Node's native `require()` and is never instrumented by Jest, so it is not listed; `public-api.test.js` covers it with smoke tests instead.
 - `coverageReporters: ['text', 'lcov']` — `text` for the console, `lcov` for the Coveralls upload from CI.
 
 Artifacts are written to `coverage/` (gitignored).
