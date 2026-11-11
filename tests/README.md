@@ -145,7 +145,7 @@ Common to every type's serialization:
 
 ### Public API contract
 
-`tests/unit/public-api.test.js` — 7 tests guarding the `exports` map from [package.json](../package.json):
+`tests/unit/public-api.test.js` — 10 tests guarding the `exports` map from [package.json](../package.json):
 
 ```json
 "exports": {
@@ -166,6 +166,9 @@ Every other test already imports the package by name, so a broken main entry wou
 | `"@captcha-solver-api/javascript-sdk/exceptions" exposes every error class` | the `./exceptions` subpath resolves and hands back every class |
 | `subpaths and the main entry expose the same classes` | these are the **same** objects, not duplicate module instances — otherwise `instanceof` would break for anyone mixing import styles |
 | `internal modules are not reachable as subpaths` | `@captcha-solver-api/javascript-sdk/client` is rejected: the file exists, but it is not declared in `exports` and must stay private |
+| `main entry exposes the same API as the ESM build` | `require()` of `.` loads `index.cjs` and exposes the same names as the ESM build |
+| `"./tasks" and "./exceptions" subpaths expose every class` | the `require` variants of both subpaths resolve and hand back every class |
+| `the CJS client and tasks are functional` | the CJS build actually works: client validation and task serialization |
 
 The class lists in the test are spelled out as explicit arrays rather than derived from the module itself. That is deliberate: comparing an export against itself always passes and checks nothing. Adding a new captcha type means extending the array by hand — and that is exactly the point where the decision to make a class public gets recorded explicitly.
 

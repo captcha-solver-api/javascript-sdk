@@ -22,7 +22,12 @@ describe('built-in task validation', () => {
     ['CoordinatesTask', { body: '   ' }, 'body'],
     ['YandexSmartCaptchaImageTask', {}, 'image, imgInstructions'],
     ['YandexSmartCaptchaImageTask', { image: 'image', imgInstructions: '' }, 'imgInstructions'],
-    ['TencentTaskProxyless', { websiteURL: 'https://example.com' }, 'appId']
+    ['TencentTaskProxyless', { websiteURL: 'https://example.com' }, 'appId'],
+    ['RecaptchaV2Enterprise', { websiteURL: 'https://example.com', websiteKey: 'key' }, 'proxyType, proxyAddress, proxyPort'],
+    ['Turnstile', { websiteURL: 'https://example.com', websiteKey: 'key', proxyType: 'http' }, 'proxyAddress, proxyPort'],
+    ['GeeTest', { websiteURL: 'https://example.com', gt: 'gt', challenge: 'challenge', proxyType: 'http', proxyAddress: '127.0.0.1' }, 'proxyPort'],
+    ['YandexSmartCaptchaTask', { websiteURL: 'https://example.com', websiteKey: 'key' }, 'proxyType, proxyAddress, proxyPort'],
+    ['TencentTask', { websiteURL: 'https://example.com', appId: 'app' }, 'proxyType, proxyAddress, proxyPort']
   ])('%s reports missing required parameters', (className, params, expected) => {
     expect(() => new Tasks[className](params)).toThrow(ValidationError);
     expect(() => new Tasks[className](params)).toThrow(expected);
