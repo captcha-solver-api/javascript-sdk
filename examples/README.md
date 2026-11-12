@@ -36,6 +36,7 @@ proxy credentials before running token CAPTCHA examples.
 | GeeTest v4 | [`geetest_v4.js`](geetest_v4.js) | [`geetest_v4_proxy.js`](geetest_v4_proxy.js) |
 | Yandex SmartCaptcha | [`yandex_smartcaptcha.js`](yandex_smartcaptcha.js) | [`yandex_smartcaptcha_proxy.js`](yandex_smartcaptcha_proxy.js) |
 | Yandex SmartCaptcha Image | [`yandex_smartcaptcha_image.js`](yandex_smartcaptcha_image.js) | No separate proxy task |
+| Yandex SmartCaptcha Kaleidoscope | [`yandex_smartcaptcha_kaleidoscope.js`](yandex_smartcaptcha_kaleidoscope.js) | No separate proxy task |
 | Tencent | [`tencent.js`](tencent.js) | [`tencent_proxy.js`](tencent_proxy.js) |
 | Image to Text | [`image_to_text.js`](image_to_text.js) | No separate proxy task |
 | Coordinates | [`coordinates.js`](coordinates.js) | No separate proxy task |

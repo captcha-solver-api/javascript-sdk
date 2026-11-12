@@ -15,6 +15,7 @@ const REQUIRED_TASK_PARAMS: Record<string, readonly string[]> = {
   YandexSmartCaptchaTask: ['websiteURL', 'websiteKey', 'proxyType', 'proxyAddress', 'proxyPort'],
   CoordinatesTask: ['body'],
   SmartCaptchaTask: ['image', 'imgInstructions'],
+  PazlCaptchaTask: ['image', 'task'],
   TencentTaskProxyless: ['websiteURL', 'appId'],
   TencentTask: ['websiteURL', 'appId', 'proxyType', 'proxyAddress', 'proxyPort']
 };
@@ -167,7 +168,7 @@ export interface TencentSolution {
  * @typeParam TSolution - Shape of the `solution` object returned for this
  *   task by `CaptchaClient.solve()`.
  */
-export class BaseTask<TSolution extends Record<string, unknown> = Record<string, unknown>> {
+export class BaseTask<TSolution = Record<string, unknown>> {
   /**
    * Type-only marker that carries the solution shape to `CaptchaClient.solve()`.
    * Never set at runtime.
@@ -651,6 +652,33 @@ export interface YandexSmartCaptchaImageTaskParams {
 export class YandexSmartCaptchaImageTask extends BaseTask<CoordinatesSolution> {
   constructor({ image, imgInstructions, comment = null }: YandexSmartCaptchaImageTaskParams = {} as YandexSmartCaptchaImageTaskParams) {
     super({ type: 'SmartCaptchaTask', image, imgInstructions, comment });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Yandex SmartCaptcha kaleidoscope                                    */
+/* ------------------------------------------------------------------ */
+
+/** Parameters of {@link YandexSmartCaptchaKaleidoscopeTask}. */
+export interface YandexSmartCaptchaKaleidoscopeTaskParams {
+  /** The main Kaleidoscope challenge image, base64-encoded. */
+  image: string;
+  /** Puzzle steps serialized as a JSON array string. */
+  task: string;
+}
+
+/**
+ * Image-based Yandex SmartCaptcha Kaleidoscope puzzle.
+ *
+ * Serialized as the API v2 `PazlCaptchaTask`. The solution is a string
+ * containing the number of slider-arrow clicks required to solve the puzzle.
+ * Solution: `string`.
+ *
+ * @see https://captcha-solver.com/en/docs/captcha-types#yandex-smartcaptcha
+ */
+export class YandexSmartCaptchaKaleidoscopeTask extends BaseTask<string> {
+  constructor({ image, task }: YandexSmartCaptchaKaleidoscopeTaskParams = {} as YandexSmartCaptchaKaleidoscopeTaskParams) {
+    super({ type: 'PazlCaptchaTask', image, task });
   }
 }
 

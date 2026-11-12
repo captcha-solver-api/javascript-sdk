@@ -162,6 +162,25 @@ describe('CaptchaClient (async)', () => {
     expect(callCount).toBe(2);
   });
 
+  test('solve returns a string solution for a Kaleidoscope task', async () => {
+    global.fetch = jest.fn()
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ errorId: 0, taskId: 12345 })
+      }))
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ errorId: 0, status: 'ready', solution: '8' })
+      }));
+
+    const task = new Tasks.YandexSmartCaptchaKaleidoscopeTask({
+      image: 'captcha-image',
+      task: '[7,15,14,0]'
+    });
+
+    await expect(client.solve(task)).resolves.toBe('8');
+  });
+
   test('throws TimeoutError when timeout exceeded', async () => {
     client.timeout = 100;
     client.pollingInterval = 200;

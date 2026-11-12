@@ -6,6 +6,9 @@ describe('built-in task validation', () => {
     expect(() => new Tasks.YandexSmartCaptchaImageTask()).toThrow(
       'SmartCaptchaTask requires: image, imgInstructions'
     );
+    expect(() => new Tasks.YandexSmartCaptchaKaleidoscopeTask()).toThrow(
+      'PazlCaptchaTask requires: image, task'
+    );
     expect(() => new Tasks.RecaptchaV2Proxyless()).toThrow(
       'RecaptchaV2TaskProxyless requires: websiteURL, websiteKey'
     );
@@ -22,6 +25,7 @@ describe('built-in task validation', () => {
     ['CoordinatesTask', { body: '   ' }, 'body'],
     ['YandexSmartCaptchaImageTask', {}, 'image, imgInstructions'],
     ['YandexSmartCaptchaImageTask', { image: 'image', imgInstructions: '' }, 'imgInstructions'],
+    ['YandexSmartCaptchaKaleidoscopeTask', { image: 'image', task: '' }, 'task'],
     ['TencentTaskProxyless', { websiteURL: 'https://example.com' }, 'appId'],
     ['RecaptchaV2Enterprise', { websiteURL: 'https://example.com', websiteKey: 'key' }, 'proxyType, proxyAddress, proxyPort'],
     ['Turnstile', { websiteURL: 'https://example.com', websiteKey: 'key', proxyType: 'http' }, 'proxyAddress, proxyPort'],
