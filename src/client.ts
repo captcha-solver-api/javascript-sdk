@@ -198,6 +198,7 @@ export class CaptchaClient {
     const startedAt = Date.now();
     const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` };
     let httpStatus: string | undefined;
+    let bodyNotJson = false;
     let data: (TaskResult & { errorCode?: string; errorDescription?: string; error?: string }) | undefined;
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, { method: 'POST', headers, body: JSON.stringify(payload), signal: controller.signal });
@@ -205,6 +206,9 @@ export class CaptchaClient {
       try {
         data = await response.json() as typeof data;
       } catch (parseError) {
+        // A SyntaxError means the body arrived but is not JSON; anything else (e.g. AbortError
+        // on timeout) means the body never fully arrived.
+        bodyNotJson = parseError instanceof SyntaxError;
         if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
         throw parseError;
       }
@@ -219,7 +223,7 @@ export class CaptchaClient {
           ? new TimeoutError(`Request timed out after ${this.timeout}ms`)
           : new NetworkError(error instanceof Error ? error.message : String(error), error);
       }
-      this._debugExchange(endpoint, payload, startedAt, { error: failure, httpStatus, response: data });
+      this._debugExchange(endpoint, payload, startedAt, { error: failure, httpStatus, response: data, bodyNotJson });
       throw failure;
     } finally { clearTimeout(timer); }
   }
@@ -231,7 +235,7 @@ export class CaptchaClient {
    * received); both are skipped for routine `processing` polls so long waits
    * stay readable.
    */
-  private _debugExchange(endpoint: string, payload: Record<string, unknown>, startedAt: number, outcome: { response?: TaskResult; error?: unknown; httpStatus?: string }): void {
+  private _debugExchange(endpoint: string, payload: Record<string, unknown>, startedAt: number, outcome: { response?: TaskResult; error?: unknown; httpStatus?: string; bodyNotJson?: boolean }): void {
     if (!this.debug) return;
     const task = payload.task as Record<string, unknown> | undefined;
     const label = [
@@ -240,18 +244,20 @@ export class CaptchaClient {
       payload.taskId !== undefined ? `taskId=${payload.taskId}` : null
     ].filter(Boolean).join(' ');
     const durationMs = Date.now() - startedAt;
-    const { response, error, httpStatus } = outcome;
+    const { response, error, httpStatus, bodyNotJson } = outcome;
+    const errorName = error instanceof Error ? error.name : 'Error';
 
     const sections: DebugSection[] = [{ title: `REQUEST (POST ${this.baseUrl}${endpoint})`, value: payload }];
     // httpStatus is set only once the server answered; without it the request failed in transit,
     // and an explicit "none" line keeps every REQUEST paired with a RESPONSE.
     if (!httpStatus) {
-      const errorName = error instanceof Error ? error.name : 'Error';
       sections.push({ title: `RESPONSE: none - no response from the server (${errorName}, ${durationMs}ms)` });
+    } else if (response !== undefined) {
+      sections.push({ title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms)`, value: response });
+    } else if (bodyNotJson) {
+      sections.push({ title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms): body is not valid JSON` });
     } else {
-      sections.push(response === undefined
-        ? { title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms): body is not valid JSON` }
-        : { title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms)`, value: response });
+      sections.push({ title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms): body was not received (${errorName})` });
     }
 
     if (error === undefined) {

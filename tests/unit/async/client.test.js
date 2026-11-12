@@ -246,6 +246,24 @@ describe('CaptchaClient (async)', () => {
       expect(messageOf('getBalance').split('\n').at(-1)).toMatch(/^RESPONSE \(HTTP 502 Bad Gateway, \d+ms\): body is not valid JSON$/);
     });
 
+    test('says the body was not received when the timeout hits while reading it', async () => {
+      client = new CaptchaClient({ clientKey: 'secret_key', debug: true, timeout: 20 });
+      // Headers arrive at once; the body only fails when the request is aborted by the timeout.
+      global.fetch = jest.fn((url, options) => Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => new Promise((resolve, reject) => {
+          options.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+        })
+      }));
+
+      await expect(client.getBalance()).rejects.toThrow(TimeoutError);
+
+      expect(lineOf('getBalance')).toMatch(/getBalance -> failed: TimeoutError: Request timed out after 20ms \(\d+ms\)$/);
+      expect(messageOf('getBalance').split('\n').at(-1)).toMatch(/^RESPONSE \(HTTP 200 OK, \d+ms\): body was not received \(TimeoutError\)$/);
+    });
+
     test('reports a solve() timeout in the summary', async () => {
       client = new CaptchaClient({ clientKey: 'secret_key', debug: true, timeout: 40, pollingInterval: 5 });
       global.fetch = jest.fn()
