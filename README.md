@@ -166,7 +166,7 @@ Constructor. Takes a single options object.
 | `baseUrl` | `string` | `https://api.captcha-solver.com` | API base URL. Override only for self-hosted/staging deployments. |
 | `timeout` | `number` | `120000` | Per-request HTTP timeout and polling time budget used by `solve()`. |
 | `pollingInterval` | `number` | `5000` | Milliseconds between `getTaskResult` polls inside `solve()`. |
-| `debug` | `boolean` | `false` | Print sanitized request, response, polling, and final solve diagnostics to the console. |
+| `debug` | `boolean` | `false` | Print timestamped, sanitized request and `solve()` diagnostics with `console.debug`. See [Debug mode](#debug-mode). |
 
 There's no manual connection pool to open or close -- `fetch` (via Node's built-in
 `undici`) already reuses keep-alive connections per host automatically, unlike Python's
@@ -196,7 +196,7 @@ different process). Rejects with `ApiError`, `TimeoutError`, or `NetworkError`.
 
 ### `getTaskResult(taskId)`
 
-Fetches the current status of a task created with `createTask()`. Resolves to an
+Fetches the current status of a task created with `createTask()`. Resolves to the API
 response with a `status` key (`'processing'` or `'ready'`); when `'ready'`, it also
 has a task-specific `solution` value. This is a single poll, not a wait -- call it
 repeatedly (as `solve()` does) until `status` is `'ready'`. Rejects with `ApiError`,
@@ -684,24 +684,75 @@ const captchaSolver = new CaptchaClient({
 
 ### Debug mode
 
-Enable `debug` to print request, response, and polling lifecycle events. Debug output
-includes the HTTP method and URL, request body, response status and body, task IDs,
-and task statuses. At the end of `solve()`, a summary reports whether the CAPTCHA was
-solved, its task ID, total elapsed time in readable seconds and exact milliseconds,
-and the number of `/getTaskResult` requests. Credential
-fields are replaced with `[REDACTED]`; long strings such as base64 images and solution
-tokens are truncated to keep the output readable.
-
-Server exchanges are printed as single labelled JSON blocks, so the response body
-always remains visually attached to `[CaptchaClient] server response` in the console.
+Enable `debug` to print one `console.debug` line per API request and a summary at the
+end of `solve()`. Every line starts with the local time, milliseconds and UTC offset,
+so the output can be matched against your application and server logs.
 
 ```javascript
-// Create a client with detailed, sanitized lifecycle logging enabled.
+// Create a client with sanitized debug logging enabled.
 const captchaSolver = new CaptchaClient({
   clientKey: 'your_api_key',
   debug: true
 });
 ```
+
+Example output of `solve()`:
+
+```text
+[2026-11-12 14:03:12.879 +03:00] [CaptchaClient] client initialized sdk=javascript-sdk/1.1.0 baseUrl=https://api.captcha-solver.com timeout=120000ms pollingInterval=5000ms
+[2026-11-12 14:03:17.204 +03:00] [CaptchaClient] createTask PazlCaptchaTask -> taskId=3668 (4325ms)
+REQUEST (POST https://api.captcha-solver.com/createTask):
+{
+  "clientKey": "[MASKED]",
+  "task": {
+    "type": "PazlCaptchaTask",
+    "image": "[base64, 142668 chars]",
+    "task": "[7,15,14,0,11,6,6,0]"
+  }
+}
+RESPONSE (HTTP 200 OK):
+{
+  "errorId": 0,
+  "taskId": 3668
+}
+[2026-11-12 14:03:23.430 +03:00] [CaptchaClient] getTaskResult taskId=3668 -> processing (1226ms)
+[2026-11-12 14:03:29.170 +03:00] [CaptchaClient] getTaskResult taskId=3668 -> ready (740ms)
+REQUEST (POST https://api.captcha-solver.com/getTaskResult):
+{
+  "clientKey": "[MASKED]",
+  "taskId": 3668
+}
+RESPONSE (HTTP 200 OK):
+{
+  "errorId": 0,
+  "status": "ready",
+  "solution": "7",
+  "createTime": 1794515548,
+  "endTime": 1794515556
+}
+[2026-11-12 14:03:29.171 +03:00] [CaptchaClient] SOLVE SUMMARY:
+  status:          solved
+  taskId:          3668
+  taskType:        PazlCaptchaTask
+  elapsed:         16.292s
+  serverSolveTime: 8s
+  polls:           2
+```
+
+- `REQUEST (POST <url>):` is the endpoint URL and JSON body the SDK sent;
+  `RESPONSE (HTTP ...):` is the server body exactly as received. They are printed for
+  task creation, balance checks, errors, and the `ready` result; routine `processing`
+  polls stay on one line.
+- Failed requests print the error the caller receives, e.g.
+  `getTaskResult taskId=3668 -> failed: ApiError ERROR_TASK_FAILED: ...`, followed by
+  `REQUEST (POST <url>):` and, when the server answered, `RESPONSE (HTTP ...):`. A
+  failed `solve()` ends with a `SOLVE SUMMARY` whose `status` is `not solved` and
+  which has an extra `error` line.
+- `serverSolveTime` comes from the API's `createTime` / `endTime`; the difference from
+  `elapsed` is task creation plus waiting between polls.
+- The API key and other credentials (`proxyLogin`, `proxyPassword`, `cookies`) are
+  replaced with `[MASKED]`, base64 images with their length, and other long strings
+  such as solution tokens are shortened. The output is safe to attach to bug reports.
 
 ### Worker language pool
 
