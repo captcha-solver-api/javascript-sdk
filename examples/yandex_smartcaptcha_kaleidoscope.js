@@ -12,7 +12,7 @@ import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
  * STEP-01 - Configure the SDK client.
  * STEP-02 - Create the CAPTCHA task from the required parameters or local assets.
  * STEP-03 - Submit the task and wait for CaptchaClient.solve() to return the solution.
- * STEP-04 - Print the relevant solution value or report an error.
+ * STEP-04 - Print the solution as formatted JSON or report an error.
  */
 
 if (!process.env.CAPTCHA_API_KEY) {
@@ -21,7 +21,8 @@ if (!process.env.CAPTCHA_API_KEY) {
 
 // STEP-01: Configure the SDK client with the API key.
 const captchaSolver = new CaptchaClient({
-  clientKey: process.env.CAPTCHA_API_KEY
+  clientKey: process.env.CAPTCHA_API_KEY,
+  debug: true
 });
 const image = fs.readFileSync(
   new URL('./assets/yandex-smartcaptcha-kaleidoscope.jpg', import.meta.url)
@@ -36,8 +37,8 @@ const task = new Tasks.YandexSmartCaptchaKaleidoscopeTask({
 // STEP-03: Submit the task; solve() handles task creation and polling.
 captchaSolver.solve(task)
   .then((clicks) => {
-    // STEP-04: Print the number of arrow clicks required by the puzzle.
-    console.log('Captcha solved. Slider arrow clicks:', clicks);
+    // STEP-04: Print a structured response that can be copied or parsed as JSON.
+    console.log(JSON.stringify({ clicks }, null, 2));
   })
   .catch((error) => {
     // Report SDK or transport failures without hiding the rejected Promise.
