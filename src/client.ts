@@ -3,27 +3,7 @@ import { __version__ } from './version.js';
 import type { BaseTask } from './tasks.js';
 
 const MAX_DEBUG_STRING_LENGTH = 200;
-let operationSequence = 0;
-
-interface DebugContext {
-  solveId?: string;
-  requestId?: string;
-  taskId?: number;
-}
-
-/** Severity assigned to a structured debug event. */
-export type DebugLevel = 'debug' | 'info' | 'error';
-
-/** One structured event emitted while debug mode is enabled. */
-export interface DebugEvent extends DebugContext {
-  timestamp: string;
-  level: DebugLevel;
-  event: string;
-  [key: string]: unknown;
-}
-
-/** Receives structured debug events. Use this to integrate a logger or file stream. */
-export type DebugLogger = (event: DebugEvent) => void;
+const REDACTED_DEBUG_FIELDS = /^(authorization|clientKey|cookie|cookies|password|proxyLogin|proxyPassword)$/i;
 
 /** Options accepted by the {@link CaptchaClient} constructor. */
 export interface CaptchaClientOptions {
@@ -54,11 +34,6 @@ export interface CaptchaClientOptions {
    * @defaultValue `false`
    */
   debug?: boolean;
-  /**
-   * Optional structured event receiver used instead of the default console renderer.
-   * Only called when {@link debug} is `true`.
-   */
-  logger?: DebugLogger;
 }
 
 /** Raw response of `/getTaskResult` (and, structurally, of every other API endpoint). */
@@ -109,45 +84,26 @@ export class CaptchaClient {
   pollingInterval: number;
   /** Whether lifecycle debug logging is enabled. */
   debug: boolean;
-  /** Structured debug event receiver. */
-  logger: DebugLogger;
 
   /**
    * @param options - Client options; only `clientKey` is required.
    * @throws {ValidationError} If `clientKey` is empty.
    */
-  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000, debug = false, logger }: CaptchaClientOptions = {} as CaptchaClientOptions) {
+  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000, debug = false }: CaptchaClientOptions = {} as CaptchaClientOptions) {
     if (!clientKey) throw new ValidationError('clientKey is required');
     this.clientKey = clientKey; this.baseUrl = baseUrl; this.timeout = timeout; this.pollingInterval = pollingInterval; this.debug = debug;
-    this.logger = logger ?? ((event) => this._writeDebugToConsole(event));
-    this._emitDebug('client.initialized', { baseUrl, timeout, pollingInterval }, 'info');
+    this._debug('client initialized', { baseUrl, timeout, pollingInterval });
   }
 
   /**
    * Copy a value for debug output while keeping logs readable and safe to share.
-   * Credentials and tokens are redacted, binary data is omitted, and other
-   * long strings retain short edges plus their original length.
+   * Credential fields are removed completely; long strings retain their edges
+   * and original length so base64 images and tokens can still be identified.
    */
   private _sanitizeForDebug(value: unknown, fieldName?: string): unknown {
-    const normalizedField = fieldName?.replace(/[^a-z0-9]/gi, '').toLowerCase();
-    if (normalizedField && /(authorization|clientkey|apikey|cookie|password|proxylogin|secret)/.test(normalizedField)) return '[REDACTED]';
-    if (normalizedField && /(accesstoken|refreshtoken|^token$|grecaptcharesponse)/.test(normalizedField)) {
-      return typeof value === 'string' ? `[REDACTED token; original length: ${value.length}]` : '[REDACTED token]';
-    }
-    if (normalizedField && /(body|image|imginstructions|pagedata)/.test(normalizedField) && typeof value === 'string' && value.length > MAX_DEBUG_STRING_LENGTH) {
-      return `[OMITTED binary data; original length: ${value.length}]`;
-    }
-    if (normalizedField?.endsWith('url') && typeof value === 'string') {
-      try {
-        const url = new URL(value);
-        for (const key of url.searchParams.keys()) {
-          if (/(key|token|secret|password|authorization)/i.test(key)) url.searchParams.set(key, '[REDACTED]');
-        }
-        return url.toString();
-      } catch { /* Keep non-standard URL placeholders unchanged. */ }
-    }
+    if (fieldName && REDACTED_DEBUG_FIELDS.test(fieldName)) return '[REDACTED]';
     if (typeof value === 'string' && value.length > MAX_DEBUG_STRING_LENGTH) {
-      const edgeLength = 32;
+      const edgeLength = Math.floor(MAX_DEBUG_STRING_LENGTH / 2);
       return `${value.slice(0, edgeLength)}...[truncated; original length: ${value.length}]...${value.slice(-edgeLength)}`;
     }
     if (Array.isArray(value)) return value.map((item) => this._sanitizeForDebug(item));
@@ -159,38 +115,18 @@ export class CaptchaClient {
     return value;
   }
 
-  /** Render one structured event for users who did not supply a logger callback. */
-  private _writeDebugToConsole(event: DebugEvent): void {
-    const output = `[CaptchaClient] ${event.event}:\n${JSON.stringify(event, null, 2)}`;
-    if (event.level === 'error') console.error(output);
-    else if (event.level === 'info') console.info(output);
-    else console.debug(output);
-  }
-
-  /** Emit one sanitized event. Logger failures never change the SDK operation result. */
-  private _emitDebug(event: string, details: Record<string, unknown> = {}, level: DebugLevel = 'debug', context: DebugContext = {}): void {
+  /** Write one debug event after sanitizing every supplied field. */
+  private _debug(message: string, details?: Record<string, unknown>): void {
     if (!this.debug) return;
-    const record = this._sanitizeForDebug({ timestamp: new Date().toISOString(), level, event, ...context, ...details }) as DebugEvent;
-    try { this.logger(record); } catch { /* Diagnostics must not break API calls. */ }
+    if (details) console.debug(`[CaptchaClient] ${message}`, this._sanitizeForDebug(details));
+    else console.debug(`[CaptchaClient] ${message}`);
   }
 
-  private _newOperationId(prefix: 'solve' | 'request'): string {
-    operationSequence += 1;
-    return `${prefix}-${Date.now().toString(36)}-${operationSequence.toString(36)}`;
-  }
-
-  private _errorDetails(error: unknown): Record<string, unknown> {
-    if (!(error instanceof Error)) return { errorName: 'UnknownError', errorMessage: String(error) };
-    const details: Record<string, unknown> = { errorName: error.name, errorMessage: error.message };
-    if (error instanceof ApiError) { details.errorCode = error.errorCode; details.errorDescription = error.errorDescription; }
-    return details;
-  }
-
-  private _failureReason(error: unknown): string {
-    if (error instanceof TimeoutError) return 'timeout';
-    if (error instanceof ApiError) return 'api_error';
-    if (error instanceof NetworkError) return 'network_error';
-    return 'unknown_error';
+  /** Print an HTTP exchange as one labelled JSON block instead of an ambiguous console object. */
+  private _debugServerExchange(message: 'server request' | 'server response', details: Record<string, unknown>): void {
+    if (!this.debug) return;
+    const json = JSON.stringify(this._sanitizeForDebug(details), null, 2);
+    console.debug(`[CaptchaClient] ${message}:\n${json}`);
   }
 
   /**
@@ -206,46 +142,34 @@ export class CaptchaClient {
    * @throws {NetworkError} On a non-2xx HTTP status or any transport failure.
    * @internal
    */
-  protected async _request(endpoint: string, payload: Record<string, unknown>, context: DebugContext = {}, requestTimeout = this.timeout): Promise<TaskResult> {
-    const effectiveTimeout = Math.max(1, Math.ceil(requestTimeout));
-    const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), effectiveTimeout);
-    const startedAt = performance.now();
+  protected async _request(endpoint: string, payload: Record<string, unknown>): Promise<TaskResult> {
+    const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), this.timeout);
+    const startedAt = Date.now();
     const url = `${this.baseUrl}${endpoint}`;
     const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` };
-    const requestContext = { ...context, requestId: this._newOperationId('request') };
-    this._emitDebug('request.started', { endpoint, timeoutMs: effectiveTimeout }, 'debug', requestContext);
-    this._emitDebug('server.request', { method: 'POST', url, headers, body: payload }, 'debug', requestContext);
+    this._debug('request started', { endpoint });
+    this._debugServerExchange('server request', { method: 'POST', url, headers, body: payload });
     try {
       const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: controller.signal });
       let data: TaskResult & { errorCode?: string; errorDescription?: string; error?: string };
-      if (typeof response.text === 'function') {
-        const rawBody = await response.text();
-        try {
-          data = JSON.parse(rawBody) as typeof data;
-        } catch (parseError) {
-          this._emitDebug('server.response', { endpoint, status: response.status, statusText: response.statusText, body: rawBody }, 'error', requestContext);
-          if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`, parseError);
-          throw new NetworkError(`Invalid JSON response from ${endpoint}`, parseError);
-        }
-      } else {
-        // The fallback keeps custom fetch implementations and lightweight test doubles compatible.
+      try {
         data = await response.json() as typeof data;
+      } catch (parseError) {
+        this._debugServerExchange('server response', { endpoint, status: response.status, statusText: response.statusText, body: '[unavailable: invalid JSON]' });
+        if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
+        throw parseError;
       }
-      const responseLevel: DebugLevel = !response.ok || !data || data.errorId !== 0 ? 'error' : 'debug';
-      this._emitDebug('server.response', { endpoint, status: response.status, statusText: response.statusText, body: data }, responseLevel, requestContext);
+      // Log the server payload first; lifecycle messages below explain how the SDK interpreted it.
+      this._debugServerExchange('server response', { endpoint, status: response.status, statusText: response.statusText, body: data });
       if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
-      if (!data || typeof data !== 'object') throw new NetworkError(`Invalid JSON response from ${endpoint}`);
       if (data.errorId !== 0) throw new ApiError(data.errorCode || 'UNKNOWN_ERROR', data.errorDescription || data.error || 'Unknown API error');
-      this._emitDebug('request.completed', { endpoint, status: response.status, durationMs: Math.round(performance.now() - startedAt) }, 'debug', requestContext);
+      this._debug('request completed', { endpoint, status: response.status, durationMs: Date.now() - startedAt });
       return data;
     } catch (error) {
-      const normalizedError = error && typeof error === 'object' && 'name' in error && error.name === 'AbortError'
-        ? new TimeoutError(`Request timed out after ${effectiveTimeout}ms`)
-        : error instanceof ApiError || error instanceof NetworkError
-          ? error
-          : new NetworkError(error instanceof Error ? error.message : String(error), error);
-      this._emitDebug('request.failed', { endpoint, durationMs: Math.round(performance.now() - startedAt), ...this._errorDetails(normalizedError) }, 'error', requestContext);
-      throw normalizedError;
+      this._debug('request failed', { endpoint, error: error instanceof Error ? error.name : 'UnknownError', durationMs: Date.now() - startedAt });
+      if (error instanceof ApiError || error instanceof NetworkError) throw error;
+      if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') throw new TimeoutError(`Request timed out after ${this.timeout}ms`);
+      throw new NetworkError(error instanceof Error ? error.message : String(error), error);
     } finally { clearTimeout(timer); }
   }
 
@@ -269,16 +193,12 @@ export class CaptchaClient {
    * ```
    */
   async createTask(task: BaseTask, languagePool: string | null = null): Promise<number> {
-    return this._createTask(task, languagePool, { solveId: this._newOperationId('solve') }, this.timeout);
-  }
-
-  private async _createTask(task: BaseTask, languagePool: string | null, context: DebugContext, requestTimeout: number): Promise<number> {
     const taskPayload = task.toDict();
     const taskType = typeof taskPayload.type === 'string' ? taskPayload.type : task.constructor.name;
-    this._emitDebug('task.submission.started', { taskType, languagePool }, 'debug', context);
+    this._debug('task submission started', { taskType, languagePool });
     const payload: Record<string, unknown> = { clientKey: this.clientKey, task: taskPayload }; if (languagePool !== null) payload.languagePool = languagePool;
-    const taskId = (await this._request('/createTask', payload, context, requestTimeout)).taskId as number;
-    this._emitDebug('task.created', { taskType }, 'info', { ...context, taskId });
+    const taskId = (await this._request('/createTask', payload)).taskId as number;
+    this._debug('task created', { taskId, taskType });
     return taskId;
   }
 
@@ -300,7 +220,7 @@ export class CaptchaClient {
    *   .catch(console.error);
    * ```
    */
-  getTaskResult(taskId: number): Promise<TaskResult> { return this._request('/getTaskResult', { clientKey: this.clientKey, taskId }, { taskId }); }
+  getTaskResult(taskId: number): Promise<TaskResult> { return this._request('/getTaskResult', { clientKey: this.clientKey, taskId }); }
 
   /**
    * Get the account balance.
@@ -338,58 +258,46 @@ export class CaptchaClient {
    * ```
    */
   async solve<T extends BaseTask<any>>(task: T, languagePool: string | null = null): Promise<SolutionOf<T>> {
-    const startedAt = performance.now();
-    const solveId = this._newOperationId('solve');
+    const taskType = task.constructor.name;
+    const startedAt = Date.now();
     let taskId: number | null = null;
     let resultRequestCount = 0;
-    let totalRequestCount = 0;
-    this._emitDebug('solve.started', { taskClass: task.constructor.name, timeoutMs: this.timeout }, 'info', { solveId });
+    this._debug('solve started', { taskType });
     try {
-      // Validate and serialize before counting the createTask HTTP attempt.
-      task.toDict();
-      const remainingForCreate = this.timeout - (performance.now() - startedAt);
-      if (remainingForCreate <= 0) throw new TimeoutError(`Task creation timed out after ${this.timeout}ms`);
-      totalRequestCount += 1;
-      taskId = await this._createTask(task, languagePool, { solveId }, remainingForCreate);
+      taskId = await this.createTask(task, languagePool);
       let pollAttempt = 0;
       while (true) {
-        const remaining = this.timeout - (performance.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
+        const remaining = this.timeout - (Date.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
         const delayMs = Math.min(this.pollingInterval, remaining);
         pollAttempt += 1;
-        this._emitDebug('poll.waiting', { pollAttempt, delayMs }, 'debug', { solveId, taskId });
+        this._debug('waiting before poll', { taskId, pollAttempt, delayMs });
         await new Promise(resolve => setTimeout(resolve, delayMs));
-        const remainingForResult = this.timeout - (performance.now() - startedAt);
-        if (remainingForResult <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
+        if (Date.now() - startedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
         resultRequestCount += 1;
-        totalRequestCount += 1;
-        const result = await this._request('/getTaskResult', { clientKey: this.clientKey, taskId }, { solveId, taskId }, remainingForResult);
-        const elapsedMs = Math.round(performance.now() - startedAt);
-        this._emitDebug('task.status.received', { pollAttempt, status: result.status, elapsedMs }, 'debug', { solveId, taskId });
+        const result = await this.getTaskResult(taskId);
+        const elapsedMs = Date.now() - startedAt;
+        this._debug('task status received', { taskId, pollAttempt, status: result.status, elapsedMs });
         if (result.status === 'ready') {
-          this._emitDebug('task.solved', { pollAttempts: pollAttempt, elapsedMs }, 'info', { solveId, taskId });
-          this._emitDebug('solve.summary', {
+          this._debug('task solved', { taskId, pollAttempts: pollAttempt, elapsedMs });
+          this._debug('solve summary', {
             status: 'solved',
+            captchaId: taskId,
             elapsedTime: `${(elapsedMs / 1000).toFixed(3)}s`,
             elapsedMs,
-            createTaskRequestCount: 1,
-            resultRequestCount,
-            totalRequestCount
-          }, 'info', { solveId, taskId });
+            resultRequestCount
+          });
           return (result.solution ?? {}) as SolutionOf<T>;
         }
       }
     } catch (error) {
-      const elapsedMs = Math.round(performance.now() - startedAt);
-      this._emitDebug('solve.summary', {
-        status: 'not_solved',
-        reason: this._failureReason(error),
+      const elapsedMs = Date.now() - startedAt;
+      this._debug('solve summary', {
+        status: 'not solved',
+        captchaId: taskId,
         elapsedTime: `${(elapsedMs / 1000).toFixed(3)}s`,
         elapsedMs,
-        createTaskRequestCount: totalRequestCount > 0 ? 1 : 0,
-        resultRequestCount,
-        totalRequestCount,
-        ...this._errorDetails(error)
-      }, 'error', { solveId, ...(taskId === null ? {} : { taskId }) });
+        resultRequestCount
+      });
       throw error;
     }
   }

@@ -681,12 +681,13 @@ const captchaSolver = new CaptchaClient({
 
 ### Debug mode
 
-Enable `debug` to print structured request, response, and polling lifecycle events.
-Every event includes an ISO timestamp, severity level, event name, and correlation IDs.
-Debug output includes the HTTP method and URL, sanitized request body, response status
-and body, task IDs, and task statuses. At the end of `solve()`, a summary reports the
-outcome or failure reason, total elapsed time, and request counts. Credential and token
-fields are redacted; binary data and other long strings are omitted or truncated.
+Enable `debug` to print request, response, and polling lifecycle events. Debug output
+includes the HTTP method and URL, request body, response status and body, task IDs,
+and task statuses. At the end of `solve()`, a summary reports whether the CAPTCHA was
+solved, its task ID, total elapsed time in readable seconds and exact milliseconds,
+and the number of `/getTaskResult` requests. Credential
+fields are replaced with `[REDACTED]`; long strings such as base64 images and solution
+tokens are truncated to keep the output readable.
 
 Server exchanges are printed as single labelled JSON blocks, so the response body
 always remains visually attached to `[CaptchaClient] server response` in the console.
@@ -696,19 +697,6 @@ always remains visually attached to `[CaptchaClient] server response` in the con
 const captchaSolver = new CaptchaClient({
   clientKey: 'your_api_key',
   debug: true
-});
-```
-
-Pass `logger` to receive the same structured events without writing to the console.
-The callback can forward events to a file or an application logger; the SDK never
-creates log files on its own:
-
-```javascript
-const events = [];
-const captchaSolver = new CaptchaClient({
-  clientKey: 'your_api_key',
-  debug: true,
-  logger: (event) => events.push(event)
 });
 ```
 

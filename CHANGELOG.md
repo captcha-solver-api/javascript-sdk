@@ -2,19 +2,6 @@
 
 All notable changes are documented here.
 
-## Unreleased
-
-### Added
-
-- add structured debug logging with timestamps, severity, correlation IDs, sanitized HTTP exchanges, request counts, and solve summaries
-- add a debug logger callback for forwarding events to application loggers or files
-
-### Fixed
-
-- enforce the overall solve timeout across task creation, polling delays, and result requests
-- preserve non-JSON server response bodies in debug events
-- redact credentials, tokens, URL secrets, and binary CAPTCHA data from debug output
-
 ## [1.1.0] - 2026-11-03
 
 ### Added
