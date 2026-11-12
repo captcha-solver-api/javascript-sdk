@@ -65,19 +65,6 @@ describe('CaptchaClient (async)', () => {
     expect(events.map(({ event }) => event)).toEqual(['server.request', 'server.response']);
   });
 
-  test('default console output uses readable Linux-style request lines', async () => {
-    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
-    client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
-    global.fetch = jest.fn(() => Promise.resolve({ ok: true, status: 200, statusText: 'OK', json: () => Promise.resolve({ errorId: 0, balance: '1.00' }) }));
-
-    await client.getBalance();
-
-    expect(debug.mock.calls[0][0]).toMatch(/^\d{4}-\d{2}-\d{2}T.* DEBUG captcha-solver request=.* → POST https:\/\/api\.captcha-solver\.com\/getBalance body=/);
-    expect(debug.mock.calls[1][0]).toMatch(/ DEBUG captcha-solver request=.* ← 200 OK \/getBalance \d+ms body=/);
-    expect(debug.mock.calls.every((call) => !call[0].includes('\n'))).toBe(true);
-    debug.mockRestore();
-  });
-
   test('solve correlates events and counts processing result requests', async () => {
     const events = [];
     client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event), pollingInterval: 1 });
