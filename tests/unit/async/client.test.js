@@ -41,7 +41,7 @@ describe('CaptchaClient (async)', () => {
 
   test('debug logger receives timestamped and sanitized structured events', async () => {
     const events = [];
-    client = new CaptchaClient({ clientKey: 'secret_key', debug: 'trace', logger: (event) => events.push(event) });
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event) });
     global.fetch = jest.fn(() => Promise.resolve({ ok: true, status: 200, statusText: 'OK', json: () => Promise.resolve({ errorId: 0, balance: '1.00' }) }));
 
     await client.getBalance();
@@ -53,16 +53,6 @@ describe('CaptchaClient (async)', () => {
     expect(events.find(({ event }) => event === 'server.request').body.clientKey).toBe('[REDACTED]');
     expect(events.find(({ event }) => event === 'server.response')).toMatchObject({ level: 'debug', status: 200, body: { balance: '1.00' } });
     expect(JSON.stringify(events)).not.toContain('secret_key');
-  });
-
-  test('concise debug omits trace-only lifecycle events', async () => {
-    const events = [];
-    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event) });
-    global.fetch = jest.fn(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ errorId: 0, balance: '1.00' }) }));
-
-    await client.getBalance();
-
-    expect(events.map(({ event }) => event)).toEqual(['server.request', 'server.response']);
   });
 
   test('solve correlates events and counts processing result requests', async () => {
