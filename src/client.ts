@@ -247,11 +247,11 @@ export class CaptchaClient {
     // and an explicit "none" line keeps every REQUEST paired with a RESPONSE.
     if (!httpStatus) {
       const errorName = error instanceof Error ? error.name : 'Error';
-      sections.push({ title: `RESPONSE: none - no response from the server (${errorName})` });
+      sections.push({ title: `RESPONSE: none - no response from the server (${errorName}, ${durationMs}ms)` });
     } else {
       sections.push(response === undefined
-        ? { title: `RESPONSE (HTTP ${httpStatus}): body is not valid JSON` }
-        : { title: `RESPONSE (HTTP ${httpStatus})`, value: response });
+        ? { title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms): body is not valid JSON` }
+        : { title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms)`, value: response });
     }
 
     if (error === undefined) {

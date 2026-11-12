@@ -47,11 +47,12 @@ describe('CaptchaClient (async)', () => {
     const messageOf = (text) => logs().find((message) => message.split('\n')[0].includes(text));
     const lineOf = (text) => messageOf(text)?.split('\n')[0];
     // Split the lines below an event into titled sections ("REQUEST (POST <url>)", "RESPONSE (HTTP 200 OK)");
+    // the variable ", <n>ms" duration is dropped from titles so tests can use fixed keys.
     const sectionsOf = (text) => {
       const sections = {};
       let title = '';
       for (const line of messageOf(text).split('\n').slice(1)) {
-        if (/^[A-Z]/.test(line)) { title = line.replace(/:$/, ''); sections[title] = ''; }
+        if (/^[A-Z]/.test(line)) { title = line.replace(/:$/, '').replace(/, \d+ms\)/, ')'); sections[title] = ''; }
         else sections[title] = (sections[title] ?? '') + line + '\n';
       }
       return Object.fromEntries(Object.entries(sections).map(([key, json]) => [key, json ? JSON.parse(json) : undefined]));
@@ -175,7 +176,7 @@ describe('CaptchaClient (async)', () => {
       expect(lineOf('getBalance')).toContain(
         'failed: NetworkError: fetch failed <- ConnectTimeoutError UND_ERR_CONNECT_TIMEOUT: Connect Timeout Error (attempted address: api.captcha-solver.com:443, timeout: 10000ms)'
       );
-      expect(messageOf('getBalance').split('\n').at(-1)).toBe('RESPONSE: none - no response from the server (NetworkError)');
+      expect(messageOf('getBalance').split('\n').at(-1)).toMatch(/^RESPONSE: none - no response from the server \(NetworkError, \d+ms\)$/);
     });
 
     test('logs the error the caller receives, not the raw transport error', async () => {
@@ -188,7 +189,7 @@ describe('CaptchaClient (async)', () => {
 
       expect(lineOf('getBalance')).toMatch(/getBalance -> failed: TimeoutError: Request timed out after 10ms \(\d+ms\)$/);
       expect(lineOf('getBalance')).not.toContain('AbortError');
-      expect(messageOf('getBalance').split('\n').at(-1)).toBe('RESPONSE: none - no response from the server (TimeoutError)');
+      expect(messageOf('getBalance').split('\n').at(-1)).toMatch(/^RESPONSE: none - no response from the server \(TimeoutError, \d+ms\)$/);
     });
   });
 
