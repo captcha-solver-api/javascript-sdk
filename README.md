@@ -125,6 +125,7 @@ on the target page.
 | Image to Text | ✅ | — |
 | Yandex SmartCaptcha | ✅ | ✅ |
 | Yandex SmartCaptcha Image | ✅ | — |
+| Yandex SmartCaptcha Kaleidoscope | ✅ | — |
 | Coordinates (click captcha) | ✅ | — |
 | Tencent | ✅ | ✅ |
 
@@ -550,6 +551,37 @@ captchaSolver.solve(task)
 
 See the runnable example in
 [examples/yandex_smartcaptcha_image.js](examples/yandex_smartcaptcha_image.js).
+
+#### Kaleidoscope puzzle
+
+Use `Tasks.YandexSmartCaptchaKaleidoscopeTask` for the image-based Kaleidoscope
+puzzle. Encode the 320×180 captcha image as base64 and pass the puzzle steps as
+a JSON array string. The SDK sends API v2 type `PazlCaptchaTask`.
+
+| Field | Required | Description |
+|---|---|---|
+| `image` | yes | Main captcha image, base64-encoded. |
+| `task` | yes | Puzzle steps serialized as a JSON array string, for example `"[15,24,4,13,10]"`. |
+
+The solution is a string containing the number of slider-arrow clicks required
+to solve the captcha.
+
+```javascript
+import fs from 'node:fs';
+import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
+
+const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
+const task = new Tasks.YandexSmartCaptchaKaleidoscopeTask({
+  image: fs.readFileSync('examples/assets/yandex-smartcaptcha-kaleidoscope.jpg').toString('base64'),
+  task: '[15,24,4,13,10]'
+});
+captchaSolver.solve(task)
+  .then((clicks) => console.log(clicks))
+  .catch(console.error);
+```
+
+See the runnable example in
+[examples/yandex_smartcaptcha_kaleidoscope.js](examples/yandex_smartcaptcha_kaleidoscope.js).
 
 ### Coordinates (click captcha)
 

@@ -32,8 +32,8 @@ export interface TaskResult {
   errorId: number;
   /** Task status: `'processing'` while a worker is on it, `'ready'` once solved. */
   status?: 'processing' | 'ready';
-  /** The solution object. Present only when `status` is `'ready'`; its shape depends on the task type. */
-  solution?: Record<string, unknown>;
+  /** The solution. Present only when `status` is `'ready'`; its shape depends on the task type. */
+  solution?: unknown;
   /** Any other fields the API returns for this endpoint (e.g. `taskId`, `balance`, `cost`). */
   [key: string]: unknown;
 }
@@ -195,7 +195,7 @@ export class CaptchaClient {
       const remaining = this.timeout - (Date.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
       await new Promise(resolve => setTimeout(resolve, Math.min(this.pollingInterval, remaining)));
       if (Date.now() - startedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
-      const result = await this.getTaskResult(taskId); if (result.status === 'ready') return (result.solution || {}) as SolutionOf<T>;
+      const result = await this.getTaskResult(taskId); if (result.status === 'ready') return (result.solution ?? {}) as SolutionOf<T>;
     }
   }
 }

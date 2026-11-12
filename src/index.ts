@@ -31,6 +31,7 @@ export type {
   YandexSmartCaptchaTaskParams,
   CoordinatesTaskParams,
   YandexSmartCaptchaImageTaskParams,
+  YandexSmartCaptchaKaleidoscopeTaskParams,
   TencentTaskProxylessParams,
   TencentTaskParams
 } from './tasks.js';
