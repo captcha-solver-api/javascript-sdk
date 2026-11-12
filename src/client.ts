@@ -272,15 +272,23 @@ export class CaptchaClient {
         this._debug('task status received', { taskId, pollAttempt, status: result.status, elapsedMs });
         if (result.status === 'ready') {
           this._debug('task solved', { taskId, pollAttempts: pollAttempt, elapsedMs });
-          this._debug('solve summary', { status: 'solved', captchaId: taskId, elapsedMs, resultRequestCount });
+          this._debug('solve summary', {
+            status: 'solved',
+            captchaId: taskId,
+            elapsedTime: `${(elapsedMs / 1000).toFixed(3)}s`,
+            elapsedMs,
+            resultRequestCount
+          });
           return (result.solution ?? {}) as SolutionOf<T>;
         }
       }
     } catch (error) {
+      const elapsedMs = Date.now() - startedAt;
       this._debug('solve summary', {
         status: 'not solved',
         captchaId: taskId,
-        elapsedMs: Date.now() - startedAt,
+        elapsedTime: `${(elapsedMs / 1000).toFixed(3)}s`,
+        elapsedMs,
         resultRequestCount
       });
       throw error;

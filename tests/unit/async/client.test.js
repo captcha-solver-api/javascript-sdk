@@ -123,6 +123,7 @@ describe('CaptchaClient (async)', () => {
     expect(debug).toHaveBeenCalledWith('[CaptchaClient] solve summary', {
       status: 'solved',
       captchaId: 12345,
+      elapsedTime: expect.stringMatching(/^\d+\.\d{3}s$/),
       elapsedMs: expect.any(Number),
       resultRequestCount: 1
     });
@@ -181,6 +182,7 @@ describe('CaptchaClient (async)', () => {
     expect(debug).toHaveBeenCalledWith('[CaptchaClient] solve summary', {
       status: 'not solved',
       captchaId: 12345,
+      elapsedTime: expect.stringMatching(/^\d+\.\d{3}s$/),
       elapsedMs: expect.any(Number),
       resultRequestCount: 1
     });

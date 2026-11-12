@@ -684,7 +684,8 @@ const captchaSolver = new CaptchaClient({
 Enable `debug` to print request, response, and polling lifecycle events. Debug output
 includes the HTTP method and URL, request body, response status and body, task IDs,
 and task statuses. At the end of `solve()`, a summary reports whether the CAPTCHA was
-solved, its task ID, total elapsed time, and the number of result requests. Credential
+solved, its task ID, total elapsed time in readable seconds and exact milliseconds,
+and the number of `/getTaskResult` requests. Credential
 fields are replaced with `[REDACTED]`; long strings such as base64 images and solution
 tokens are truncated to keep the output readable.
 
