@@ -686,6 +686,7 @@ includes endpoint names, HTTP status codes, task IDs, and task statuses; it neve
 includes the API key, task payload, or solution.
 
 ```javascript
+// Create a client with detailed, sanitized lifecycle logging enabled.
 const captchaSolver = new CaptchaClient({
   clientKey: 'your_api_key',
   debug: true

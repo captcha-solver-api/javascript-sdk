@@ -51,8 +51,58 @@ describe('CaptchaClient (async)', () => {
     await client.getBalance();
 
     expect(debug).toHaveBeenCalledWith('[CaptchaClient] request started', { endpoint: '/getBalance' });
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] request completed', { endpoint: '/getBalance', status: 200 });
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] client initialized', {
+      baseUrl: 'https://api.captcha-solver.com',
+      timeout: 120000,
+      pollingInterval: 5000
+    });
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] request completed', {
+      endpoint: '/getBalance',
+      status: 200,
+      durationMs: expect.any(Number)
+    });
     expect(JSON.stringify(debug.mock.calls)).not.toContain('secret_key');
+    debug.mockRestore();
+  });
+
+  test('debug mode logs task type, task ID, and polling progress', async () => {
+    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, pollingInterval: 1 });
+    global.fetch = jest.fn()
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ errorId: 0, taskId: 12345 })
+      }))
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ errorId: 0, status: 'ready', solution: { token: 'secret_solution' } })
+      }));
+    const task = new Tasks.RecaptchaV2Proxyless({
+      websiteURL: 'https://example.com',
+      websiteKey: 'website_key'
+    });
+
+    await client.solve(task);
+
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] task created', {
+      taskId: 12345,
+      taskType: 'RecaptchaV2TaskProxyless'
+    });
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] task status received', {
+      taskId: 12345,
+      pollAttempt: 1,
+      status: 'ready',
+      elapsedMs: expect.any(Number)
+    });
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] task solved', {
+      taskId: 12345,
+      pollAttempts: 1,
+      elapsedMs: expect.any(Number)
+    });
+    expect(JSON.stringify(debug.mock.calls)).not.toContain('secret_solution');
+    expect(JSON.stringify(debug.mock.calls)).not.toContain('website_key');
     debug.mockRestore();
   });
 
