@@ -51,6 +51,22 @@ describe('CaptchaClient (async)', () => {
     await client.getBalance();
 
     expect(debug).toHaveBeenCalledWith('[CaptchaClient] request started', { endpoint: '/getBalance' });
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] server request', {
+      method: 'POST',
+      url: 'https://api.captcha-solver.com/getBalance',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-SDK': 'javascript-sdk/1.1.0'
+      },
+      body: { clientKey: '[REDACTED]' }
+    });
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] server response', {
+      endpoint: '/getBalance',
+      status: 200,
+      statusText: undefined,
+      body: { errorId: 0, balance: '1.00' }
+    });
     expect(debug).toHaveBeenCalledWith('[CaptchaClient] client initialized', {
       baseUrl: 'https://api.captcha-solver.com',
       timeout: 120000,
@@ -77,7 +93,7 @@ describe('CaptchaClient (async)', () => {
       .mockImplementationOnce(() => Promise.resolve({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ errorId: 0, status: 'ready', solution: { token: 'secret_solution' } })
+        json: () => Promise.resolve({ errorId: 0, status: 'ready', solution: { token: `start-${'x'.repeat(300)}-end` } })
       }));
     const task = new Tasks.RecaptchaV2Proxyless({
       websiteURL: 'https://example.com',
@@ -101,8 +117,11 @@ describe('CaptchaClient (async)', () => {
       pollAttempts: 1,
       elapsedMs: expect.any(Number)
     });
-    expect(JSON.stringify(debug.mock.calls)).not.toContain('secret_solution');
-    expect(JSON.stringify(debug.mock.calls)).not.toContain('website_key');
+    const logged = JSON.stringify(debug.mock.calls);
+    expect(logged).toContain('website_key');
+    expect(logged).toContain('original length: 310');
+    expect(logged).not.toContain(`start-${'x'.repeat(300)}-end`);
+    expect(logged).not.toContain('secret_key');
     debug.mockRestore();
   });
 
@@ -117,6 +136,32 @@ describe('CaptchaClient (async)', () => {
     await client.getBalance();
 
     expect(debug).not.toHaveBeenCalled();
+    debug.mockRestore();
+  });
+
+  test('debug mode logs the original API error response before throwing', async () => {
+    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
+    const errorBody = {
+      errorId: 1,
+      errorCode: 'ERROR_KEY_DOES_NOT_EXIST',
+      errorDescription: 'Account not found'
+    };
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: () => Promise.resolve(errorBody)
+    }));
+
+    await expect(client.getBalance()).rejects.toThrow(ApiError);
+
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] server response', {
+      endpoint: '/getBalance',
+      status: 200,
+      statusText: 'OK',
+      body: errorBody
+    });
     debug.mockRestore();
   });
 
@@ -387,7 +432,7 @@ describe('CaptchaClient error edge cases (async)', () => {
     });
   });
 
-  test('throws NetworkError on a non-2xx HTTP status without reading the body', async () => {
+  test('throws NetworkError on a non-2xx HTTP status after reading the error body', async () => {
     const json = jest.fn();
     global.fetch = jest.fn(() => Promise.resolve({
       ok: false,
@@ -399,7 +444,7 @@ describe('CaptchaClient error edge cases (async)', () => {
     const error = await client.createTask(task()).catch((e) => e);
     expect(error).toBeInstanceOf(NetworkError);
     expect(error.message).toBe('HTTP error: 502 Bad Gateway');
-    expect(json).not.toHaveBeenCalled();
+    expect(json).toHaveBeenCalledTimes(1);
   });
 
   test('throws NetworkError when the response body is not valid JSON', async () => {

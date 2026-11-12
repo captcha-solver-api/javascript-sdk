@@ -2,6 +2,9 @@ import { ApiError, NetworkError, TimeoutError, ValidationError } from './excepti
 import { __version__ } from './version.js';
 import type { BaseTask } from './tasks.js';
 
+const MAX_DEBUG_STRING_LENGTH = 200;
+const REDACTED_DEBUG_FIELDS = /^(authorization|clientKey|cookie|cookies|password|proxyLogin|proxyPassword)$/i;
+
 /** Options accepted by the {@link CaptchaClient} constructor. */
 export interface CaptchaClientOptions {
   /** Your Captcha Solver API key. Required. */
@@ -26,7 +29,8 @@ export interface CaptchaClientOptions {
   pollingInterval?: number;
   /**
    * Print request and polling lifecycle events to `console.debug`.
-   * API keys, task payloads, and solutions are never included.
+   * Request and response bodies are included after credentials are redacted
+   * and long strings such as base64 images and solution tokens are truncated.
    * @defaultValue `false`
    */
   debug?: boolean;
@@ -92,13 +96,29 @@ export class CaptchaClient {
   }
 
   /**
-   * Write a sanitized lifecycle event when debug mode is enabled.
-   * Callers pass only operational metadata here so credentials, CAPTCHA image
-   * data, task payloads, and solutions cannot leak into console output.
+   * Copy a value for debug output while keeping logs readable and safe to share.
+   * Credential fields are removed completely; long strings retain their edges
+   * and original length so base64 images and tokens can still be identified.
    */
+  private _sanitizeForDebug(value: unknown, fieldName?: string): unknown {
+    if (fieldName && REDACTED_DEBUG_FIELDS.test(fieldName)) return '[REDACTED]';
+    if (typeof value === 'string' && value.length > MAX_DEBUG_STRING_LENGTH) {
+      const edgeLength = Math.floor(MAX_DEBUG_STRING_LENGTH / 2);
+      return `${value.slice(0, edgeLength)}...[truncated; original length: ${value.length}]...${value.slice(-edgeLength)}`;
+    }
+    if (Array.isArray(value)) return value.map((item) => this._sanitizeForDebug(item));
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value).map(([key, item]) => [key, this._sanitizeForDebug(item, key)])
+      );
+    }
+    return value;
+  }
+
+  /** Write one debug event after sanitizing every supplied field. */
   private _debug(message: string, details?: Record<string, unknown>): void {
     if (!this.debug) return;
-    if (details) console.debug(`[CaptchaClient] ${message}`, details);
+    if (details) console.debug(`[CaptchaClient] ${message}`, this._sanitizeForDebug(details));
     else console.debug(`[CaptchaClient] ${message}`);
   }
 
@@ -118,11 +138,22 @@ export class CaptchaClient {
   protected async _request(endpoint: string, payload: Record<string, unknown>): Promise<TaskResult> {
     const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), this.timeout);
     const startedAt = Date.now();
+    const url = `${this.baseUrl}${endpoint}`;
+    const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` };
     this._debug('request started', { endpoint });
+    this._debug('server request', { method: 'POST', url, headers, body: payload });
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` }, body: JSON.stringify(payload), signal: controller.signal });
+      const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: controller.signal });
+      let data: TaskResult & { errorCode?: string; errorDescription?: string; error?: string };
+      try {
+        data = await response.json() as typeof data;
+      } catch (parseError) {
+        this._debug('server response', { endpoint, status: response.status, statusText: response.statusText, body: '[unavailable: invalid JSON]' });
+        if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
+        throw parseError;
+      }
+      this._debug('server response', { endpoint, status: response.status, statusText: response.statusText, body: data });
       if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
-      const data = await response.json() as TaskResult & { errorCode?: string; errorDescription?: string; error?: string };
       if (data.errorId !== 0) throw new ApiError(data.errorCode || 'UNKNOWN_ERROR', data.errorDescription || data.error || 'Unknown API error');
       this._debug('request completed', { endpoint, status: response.status, durationMs: Date.now() - startedAt });
       return data;

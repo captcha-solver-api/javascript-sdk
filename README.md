@@ -681,9 +681,10 @@ const captchaSolver = new CaptchaClient({
 
 ### Debug mode
 
-Enable `debug` to print sanitized request and polling lifecycle events. Debug output
-includes endpoint names, HTTP status codes, task IDs, and task statuses; it never
-includes the API key, task payload, or solution.
+Enable `debug` to print request, response, and polling lifecycle events. Debug output
+includes the HTTP method and URL, request body, response status and body, task IDs,
+and task statuses. Credential fields are replaced with `[REDACTED]`; long strings
+such as base64 images and solution tokens are truncated to keep the output readable.
 
 ```javascript
 // Create a client with detailed, sanitized lifecycle logging enabled.
