@@ -77,6 +77,9 @@ describe('CaptchaClient (async)', () => {
       status: 200,
       durationMs: expect.any(Number)
     });
+    const responseLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] server response');
+    const completedLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] request completed');
+    expect(responseLogIndex).toBeLessThan(completedLogIndex);
     expect(JSON.stringify(debug.mock.calls)).not.toContain('secret_key');
     debug.mockRestore();
   });
@@ -122,6 +125,15 @@ describe('CaptchaClient (async)', () => {
     expect(logged).toContain('original length: 310');
     expect(logged).not.toContain(`start-${'x'.repeat(300)}-end`);
     expect(logged).not.toContain('secret_key');
+    const resultResponseLogIndex = debug.mock.calls.findIndex(([message, details]) =>
+      message === '[CaptchaClient] server response' && details.endpoint === '/getTaskResult'
+    );
+    const resultCompletedLogIndex = debug.mock.calls.findIndex(([message, details]) =>
+      message === '[CaptchaClient] request completed' && details.endpoint === '/getTaskResult'
+    );
+    const statusLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] task status received');
+    expect(resultResponseLogIndex).toBeLessThan(resultCompletedLogIndex);
+    expect(resultCompletedLogIndex).toBeLessThan(statusLogIndex);
     debug.mockRestore();
   });
 
@@ -162,6 +174,9 @@ describe('CaptchaClient (async)', () => {
       statusText: 'OK',
       body: errorBody
     });
+    const responseLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] server response');
+    const failedLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] request failed');
+    expect(responseLogIndex).toBeLessThan(failedLogIndex);
     debug.mockRestore();
   });
 

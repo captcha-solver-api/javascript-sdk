@@ -152,6 +152,7 @@ export class CaptchaClient {
         if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
         throw parseError;
       }
+      // Log the server payload first; lifecycle messages below explain how the SDK interpreted it.
       this._debug('server response', { endpoint, status: response.status, statusText: response.statusText, body: data });
       if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
       if (data.errorId !== 0) throw new ApiError(data.errorCode || 'UNKNOWN_ERROR', data.errorDescription || data.error || 'Unknown API error');
