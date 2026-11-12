@@ -3,6 +3,14 @@ import { __version__ } from './version.js';
 import type { BaseTask } from './tasks.js';
 
 const MAX_DEBUG_STRING_LENGTH = 200;
+const TRACE_ONLY_EVENTS = new Set([
+  'client.initialized',
+  'task.submission.started',
+  'request.started',
+  'request.completed',
+  'poll.waiting',
+  'task.solved'
+]);
 let operationSequence = 0;
 
 interface DebugContext {
@@ -24,6 +32,9 @@ export interface DebugEvent extends DebugContext {
 
 /** Receives structured debug events. Use this to integrate a logger or file stream. */
 export type DebugLogger = (event: DebugEvent) => void;
+
+/** Debug output mode: `true` is concise, while `'trace'` includes every lifecycle event. */
+export type DebugMode = boolean | 'trace';
 
 /** Options accepted by the {@link CaptchaClient} constructor. */
 export interface CaptchaClientOptions {
@@ -48,12 +59,13 @@ export interface CaptchaClientOptions {
    */
   pollingInterval?: number;
   /**
-   * Print request and polling lifecycle events to `console.debug`.
+   * Print structured request and polling events. `true` keeps the useful concise
+   * flow; `'trace'` also includes low-level request timing and polling events.
    * Request and response bodies are included after credentials are redacted
    * and long strings such as base64 images and solution tokens are truncated.
    * @defaultValue `false`
    */
-  debug?: boolean;
+  debug?: DebugMode;
   /**
    * Optional structured event receiver used instead of the default console renderer.
    * Only called when {@link debug} is `true`.
@@ -108,7 +120,7 @@ export class CaptchaClient {
   /** Delay between polls inside {@link solve}, in milliseconds. */
   pollingInterval: number;
   /** Whether lifecycle debug logging is enabled. */
-  debug: boolean;
+  debug: DebugMode;
   /** Structured debug event receiver. */
   logger: DebugLogger;
 
@@ -161,7 +173,13 @@ export class CaptchaClient {
 
   /** Render one structured event for users who did not supply a logger callback. */
   private _writeDebugToConsole(event: DebugEvent): void {
-    const output = `[CaptchaClient] ${event.event}:\n${JSON.stringify(event, null, 2)}`;
+    const isServerExchange = event.event === 'server.request' || event.event === 'server.response';
+    const output = isServerExchange
+      ? `[${event.timestamp}] [${event.level.toUpperCase()}] [CaptchaClient] ${event.event}:\n${JSON.stringify(event, null, 2)}`
+      : `[${event.timestamp}] [${event.level.toUpperCase()}] [CaptchaClient] ${event.event} ${Object.entries(event)
+        .filter(([key]) => !['timestamp', 'level', 'event'].includes(key))
+        .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+        .join(' ')}`;
     if (event.level === 'error') console.error(output);
     else if (event.level === 'info') console.info(output);
     else console.debug(output);
@@ -170,6 +188,7 @@ export class CaptchaClient {
   /** Emit one sanitized event. Logger failures never change the SDK operation result. */
   private _emitDebug(event: string, details: Record<string, unknown> = {}, level: DebugLevel = 'debug', context: DebugContext = {}): void {
     if (!this.debug) return;
+    if (this.debug !== 'trace' && TRACE_ONLY_EVENTS.has(event)) return;
     const record = this._sanitizeForDebug({ timestamp: new Date().toISOString(), level, event, ...context, ...details }) as DebugEvent;
     try { this.logger(record); } catch { /* Diagnostics must not break API calls. */ }
   }
@@ -223,7 +242,7 @@ export class CaptchaClient {
         try {
           data = JSON.parse(rawBody) as typeof data;
         } catch (parseError) {
-          this._emitDebug('server.response', { endpoint, status: response.status, statusText: response.statusText, body: rawBody }, 'error', requestContext);
+          this._emitDebug('server.response', { endpoint, status: response.status, statusText: response.statusText, durationMs: Math.round(performance.now() - startedAt), body: rawBody }, 'error', requestContext);
           if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`, parseError);
           throw new NetworkError(`Invalid JSON response from ${endpoint}`, parseError);
         }
@@ -232,7 +251,7 @@ export class CaptchaClient {
         data = await response.json() as typeof data;
       }
       const responseLevel: DebugLevel = !response.ok || !data || data.errorId !== 0 ? 'error' : 'debug';
-      this._emitDebug('server.response', { endpoint, status: response.status, statusText: response.statusText, body: data }, responseLevel, requestContext);
+      this._emitDebug('server.response', { endpoint, status: response.status, statusText: response.statusText, durationMs: Math.round(performance.now() - startedAt), body: data }, responseLevel, requestContext);
       if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
       if (!data || typeof data !== 'object') throw new NetworkError(`Invalid JSON response from ${endpoint}`);
       if (data.errorId !== 0) throw new ApiError(data.errorCode || 'UNKNOWN_ERROR', data.errorDescription || data.error || 'Unknown API error');

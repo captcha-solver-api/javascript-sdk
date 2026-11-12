@@ -681,7 +681,8 @@ const captchaSolver = new CaptchaClient({
 
 ### Debug mode
 
-Enable `debug` to print structured request, response, and polling lifecycle events.
+Enable `debug` to print a concise structured flow with server requests and responses,
+task state changes, errors, and the final summary.
 Every event includes an ISO timestamp, severity level, event name, and correlation IDs.
 Debug output includes the HTTP method and URL, sanitized request body, response status
 and body, task IDs, and task statuses. At the end of `solve()`, a summary reports the
@@ -696,6 +697,17 @@ always remains visually attached to `[CaptchaClient] server response` in the con
 const captchaSolver = new CaptchaClient({
   clientKey: 'your_api_key',
   debug: true
+});
+```
+
+Use `debug: 'trace'` only when low-level timing is needed. Trace mode additionally
+prints client initialization, request start/completion, polling waits, and other
+internal lifecycle events:
+
+```javascript
+const captchaSolver = new CaptchaClient({
+  clientKey: 'your_api_key',
+  debug: 'trace'
 });
 ```
 

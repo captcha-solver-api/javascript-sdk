@@ -7,6 +7,7 @@ All notable changes are documented here.
 ### Added
 
 - add structured debug logging with timestamps, severity, correlation IDs, sanitized HTTP exchanges, request counts, and solve summaries
+- add concise `debug: true` output and an opt-in `debug: 'trace'` mode for low-level lifecycle events
 - add a debug logger callback for forwarding events to application loggers or files
 
 ### Fixed
