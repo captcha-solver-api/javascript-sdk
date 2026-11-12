@@ -213,6 +213,57 @@ describe('CaptchaClient (async)', () => {
       expect(messageOf('getBalance').split('\n').at(-1)).toMatch(/^RESPONSE: none - no response from the server \(NetworkError, \d+ms\)$/);
     });
 
+    test('logs the JSON body of a non-2xx HTTP response', async () => {
+      client = new CaptchaClient({ clientKey: 'secret_key', debug: true, baseUrl: 'https://api.captcha-solver.com/no-such-path' });
+      global.fetch = jest.fn(() => Promise.resolve({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: () => Promise.resolve({ message: 'The route could not be found.' })
+      }));
+
+      await expect(client.getBalance()).rejects.toThrow(NetworkError);
+
+      expect(lineOf('getBalance')).toMatch(/getBalance -> failed: NetworkError: HTTP error: 404 Not Found \(\d+ms\)$/);
+      expect(sectionsOf('getBalance')).toEqual({
+        'REQUEST (POST https://api.captcha-solver.com/no-such-path/getBalance)': { clientKey: '[MASKED]' },
+        'RESPONSE (HTTP 404 Not Found)': { message: 'The route could not be found.' }
+      });
+    });
+
+    test('says when the response body is not valid JSON', async () => {
+      client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
+      global.fetch = jest.fn(() => Promise.resolve({
+        ok: false,
+        status: 502,
+        statusText: 'Bad Gateway',
+        json: () => Promise.reject(new SyntaxError('Unexpected token < in JSON'))
+      }));
+
+      await expect(client.getBalance()).rejects.toThrow(NetworkError);
+
+      expect(lineOf('getBalance')).toMatch(/getBalance -> failed: NetworkError: HTTP error: 502 Bad Gateway \(\d+ms\)$/);
+      expect(messageOf('getBalance').split('\n').at(-1)).toMatch(/^RESPONSE \(HTTP 502 Bad Gateway, \d+ms\): body is not valid JSON$/);
+    });
+
+    test('reports a solve() timeout in the summary', async () => {
+      client = new CaptchaClient({ clientKey: 'secret_key', debug: true, timeout: 40, pollingInterval: 5 });
+      global.fetch = jest.fn()
+        .mockImplementationOnce(() => okResponse({ errorId: 0, taskId: 12345 }))
+        .mockImplementation(() => okResponse({ errorId: 0, status: 'processing' }));
+
+      await expect(client.solve(recaptchaTask())).rejects.toThrow(TimeoutError);
+
+      const summary = summaryOf();
+      expect(summary).toMatchObject({
+        status: 'not solved',
+        taskId: '12345',
+        error: 'TimeoutError: Task 12345 timed out after 40ms'
+      });
+      expect(Number(summary.polls)).toBeGreaterThan(0);
+      expect(summary).not.toHaveProperty('serverSolveTime');
+    });
+
     test('logs the error the caller receives, not the raw transport error', async () => {
       client = new CaptchaClient({ clientKey: 'secret_key', debug: true, timeout: 10 });
       global.fetch = jest.fn((url, options) => new Promise((resolve, reject) => {
