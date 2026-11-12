@@ -173,13 +173,23 @@ export class CaptchaClient {
 
   /** Render one structured event for users who did not supply a logger callback. */
   private _writeDebugToConsole(event: DebugEvent): void {
-    const isServerExchange = event.event === 'server.request' || event.event === 'server.response';
-    const output = isServerExchange
-      ? `[${event.timestamp}] [${event.level.toUpperCase()}] [CaptchaClient] ${event.event}:\n${JSON.stringify(event, null, 2)}`
-      : `[${event.timestamp}] [${event.level.toUpperCase()}] [CaptchaClient] ${event.event} ${Object.entries(event)
-        .filter(([key]) => !['timestamp', 'level', 'event'].includes(key))
+    const level = event.level.toUpperCase().padEnd(5);
+    const context = [event.solveId && `solve=${event.solveId}`, event.taskId !== undefined && `task=${event.taskId}`, event.requestId && `request=${event.requestId}`]
+      .filter(Boolean)
+      .join(' ');
+    let message: string;
+    if (event.event === 'server.request') {
+      message = `→ ${event.method} ${event.url} body=${JSON.stringify(event.body)}`;
+    } else if (event.event === 'server.response') {
+      message = `← ${event.status} ${event.statusText || ''} ${event.endpoint} ${event.durationMs}ms body=${JSON.stringify(event.body)}`;
+    } else {
+      const details = Object.entries(event)
+        .filter(([key]) => !['timestamp', 'level', 'event', 'solveId', 'taskId', 'requestId'].includes(key))
         .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-        .join(' ')}`;
+        .join(' ');
+      message = `${event.event}${details ? ` ${details}` : ''}`;
+    }
+    const output = `${event.timestamp} ${level} captcha-solver${context ? ` ${context}` : ''} ${message}`;
     if (event.level === 'error') console.error(output);
     else if (event.level === 'info') console.info(output);
     else console.debug(output);

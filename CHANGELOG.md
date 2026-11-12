@@ -8,6 +8,7 @@ All notable changes are documented here.
 
 - add structured debug logging with timestamps, severity, correlation IDs, sanitized HTTP exchanges, request counts, and solve summaries
 - add concise `debug: true` output and an opt-in `debug: 'trace'` mode for low-level lifecycle events
+- format default console diagnostics as Linux-style one-record-per-line logs
 - add a debug logger callback for forwarding events to application loggers or files
 
 ### Fixed

@@ -689,8 +689,9 @@ and body, task IDs, and task statuses. At the end of `solve()`, a summary report
 outcome or failure reason, total elapsed time, and request counts. Credential and token
 fields are redacted; binary data and other long strings are omitted or truncated.
 
-Server exchanges are printed as single labelled JSON blocks, so the response body
-always remains visually attached to `[CaptchaClient] server response` in the console.
+Console output uses a Linux-style one-record-per-line format. `→` marks an outbound
+request and `←` marks the matching server response; correlation IDs remain on the
+same line. Custom loggers still receive the full structured event object.
 
 ```javascript
 // Create a client with detailed, sanitized lifecycle logging enabled.
