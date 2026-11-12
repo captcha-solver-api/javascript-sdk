@@ -39,172 +39,158 @@ describe('CaptchaClient (async)', () => {
     expect(requestOptions.headers['X-SDK']).toBe('javascript-sdk/1.1.0');
   });
 
-  test('debug mode logs sanitized request lifecycle events', async () => {
-    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
-    client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
-    global.fetch = jest.fn(() => Promise.resolve({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({ errorId: 0, balance: '1.00' })
-    }));
+  test('debug logger receives timestamped and sanitized structured events', async () => {
+    const events = [];
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event) });
+    global.fetch = jest.fn(() => Promise.resolve({ ok: true, status: 200, statusText: 'OK', json: () => Promise.resolve({ errorId: 0, balance: '1.00' }) }));
 
     await client.getBalance();
 
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] request started', { endpoint: '/getBalance' });
-    const requestLog = debug.mock.calls.find(([message]) => message.startsWith('[CaptchaClient] server request:'))?.[0];
-    expect(requestLog).toContain('"url": "https://api.captcha-solver.com/getBalance"');
-    expect(requestLog).toContain('"clientKey": "[REDACTED]"');
-    const responseLog = debug.mock.calls.find(([message]) => message.startsWith('[CaptchaClient] server response:'))?.[0];
-    expect(responseLog).toContain('"endpoint": "/getBalance"');
-    expect(responseLog).toContain('"status": 200');
-    expect(responseLog).toContain('"balance": "1.00"');
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] client initialized', {
-      baseUrl: 'https://api.captcha-solver.com',
-      timeout: 120000,
-      pollingInterval: 5000
-    });
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] request completed', {
-      endpoint: '/getBalance',
-      status: 200,
-      durationMs: expect.any(Number)
-    });
-    const responseLogIndex = debug.mock.calls.findIndex(([message]) => message.startsWith('[CaptchaClient] server response:'));
-    const completedLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] request completed');
-    expect(responseLogIndex).toBeLessThan(completedLogIndex);
-    expect(JSON.stringify(debug.mock.calls)).not.toContain('secret_key');
-    debug.mockRestore();
+    expect(events.map(({ event }) => event)).toEqual([
+      'client.initialized', 'request.started', 'server.request', 'server.response', 'request.completed'
+    ]);
+    expect(events.every(({ timestamp }) => !Number.isNaN(Date.parse(timestamp)))).toBe(true);
+    expect(events.find(({ event }) => event === 'server.request').body.clientKey).toBe('[REDACTED]');
+    expect(events.find(({ event }) => event === 'server.response')).toMatchObject({ level: 'debug', status: 200, body: { balance: '1.00' } });
+    expect(JSON.stringify(events)).not.toContain('secret_key');
   });
 
-  test('debug mode logs task type, task ID, and polling progress', async () => {
-    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
-    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, pollingInterval: 1 });
+  test('solve correlates events and counts processing result requests', async () => {
+    const events = [];
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event), pollingInterval: 1 });
     global.fetch = jest.fn()
-      .mockImplementationOnce(() => Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ errorId: 0, taskId: 12345 })
-      }))
-      .mockImplementationOnce(() => Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ errorId: 0, status: 'ready', solution: { token: `start-${'x'.repeat(300)}-end` } })
-      }));
-    const task = new Tasks.RecaptchaV2Proxyless({
-      websiteURL: 'https://example.com',
-      websiteKey: 'website_key'
-    });
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ errorId: 0, taskId: 12345 }) }))
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ errorId: 0, status: 'processing' }) }))
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ errorId: 0, status: 'ready', solution: { token: 'secret_solution' } }) }));
+    const task = new Tasks.RecaptchaV2Proxyless({ websiteURL: 'https://example.com', websiteKey: 'website_key' });
 
     await client.solve(task);
 
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] task created', {
-      taskId: 12345,
-      taskType: 'RecaptchaV2TaskProxyless'
+    const solveEvents = events.filter(({ solveId }) => solveId);
+    expect(new Set(solveEvents.map(({ solveId }) => solveId)).size).toBe(1);
+    expect(events.find(({ event }) => event === 'task.created')).toMatchObject({ taskId: 12345, taskType: 'RecaptchaV2TaskProxyless' });
+    expect(events.find(({ event }) => event === 'solve.summary')).toMatchObject({
+      level: 'info', status: 'solved', taskId: 12345, createTaskRequestCount: 1, resultRequestCount: 2, totalRequestCount: 3
     });
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] task status received', {
-      taskId: 12345,
-      pollAttempt: 1,
-      status: 'ready',
-      elapsedMs: expect.any(Number)
-    });
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] task solved', {
-      taskId: 12345,
-      pollAttempts: 1,
-      elapsedMs: expect.any(Number)
-    });
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] solve summary', {
-      status: 'solved',
-      captchaId: 12345,
-      elapsedTime: expect.stringMatching(/^\d+\.\d{3}s$/),
-      elapsedMs: expect.any(Number),
-      resultRequestCount: 1
-    });
-    const logged = JSON.stringify(debug.mock.calls);
-    expect(logged).toContain('website_key');
-    expect(logged).toContain('original length: 310');
-    expect(logged).not.toContain(`start-${'x'.repeat(300)}-end`);
-    expect(logged).not.toContain('secret_key');
-    const resultResponseLogIndex = debug.mock.calls.findIndex(([message, details]) =>
-      message.startsWith('[CaptchaClient] server response:') && message.includes('"endpoint": "/getTaskResult"')
-    );
-    const resultCompletedLogIndex = debug.mock.calls.findIndex(([message, details]) =>
-      message === '[CaptchaClient] request completed' && details.endpoint === '/getTaskResult'
-    );
-    const statusLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] task status received');
-    expect(resultResponseLogIndex).toBeLessThan(resultCompletedLogIndex);
-    expect(resultCompletedLogIndex).toBeLessThan(statusLogIndex);
-    debug.mockRestore();
+    expect(JSON.stringify(events)).toContain('[REDACTED token; original length: 15]');
+    expect(JSON.stringify(events)).not.toContain('secret_solution');
   });
 
   test('debug mode is silent by default', async () => {
     const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
-    global.fetch = jest.fn(() => Promise.resolve({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({ errorId: 0, balance: '1.00' })
-    }));
-
+    global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ errorId: 0, balance: '1.00' }) }));
     await client.getBalance();
-
     expect(debug).not.toHaveBeenCalled();
     debug.mockRestore();
   });
 
-  test('debug mode logs a not-solved summary after a result request fails', async () => {
-    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
-    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, pollingInterval: 1 });
+  test('solve summary explains API failures', async () => {
+    const events = [];
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event), pollingInterval: 1 });
     global.fetch = jest.fn()
-      .mockImplementationOnce(() => Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ errorId: 0, taskId: 12345 })
-      }))
-      .mockImplementationOnce(() => Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ errorId: 1, errorCode: 'ERROR_TASK_FAILED', errorDescription: 'Task failed' })
-      }));
-    const task = new Tasks.RecaptchaV2Proxyless({
-      websiteURL: 'https://example.com',
-      websiteKey: 'website_key'
-    });
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ errorId: 0, taskId: 12345 }) }))
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ errorId: 1, errorCode: 'ERROR_TASK_FAILED', errorDescription: 'Task failed' }) }));
+    const task = new Tasks.RecaptchaV2Proxyless({ websiteURL: 'https://example.com', websiteKey: 'website_key' });
 
     await expect(client.solve(task)).rejects.toThrow(ApiError);
 
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] solve summary', {
-      status: 'not solved',
-      captchaId: 12345,
-      elapsedTime: expect.stringMatching(/^\d+\.\d{3}s$/),
-      elapsedMs: expect.any(Number),
-      resultRequestCount: 1
+    expect(events.find(({ event }) => event === 'solve.summary')).toMatchObject({
+      level: 'error', status: 'not_solved', reason: 'api_error', taskId: 12345,
+      errorName: 'ApiError', errorCode: 'ERROR_TASK_FAILED', resultRequestCount: 1, totalRequestCount: 2
     });
-    debug.mockRestore();
   });
 
-  test('debug mode logs the original API error response before throwing', async () => {
-    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
-    client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
-    const errorBody = {
-      errorId: 1,
-      errorCode: 'ERROR_KEY_DOES_NOT_EXIST',
-      errorDescription: 'Account not found'
-    };
+  test('debug logger preserves a non-JSON server error body', async () => {
+    const events = [];
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event) });
+    global.fetch = jest.fn(() => Promise.resolve({ ok: false, status: 502, statusText: 'Bad Gateway', text: () => Promise.resolve('<html>upstream failed</html>') }));
+
+    await expect(client.getBalance()).rejects.toThrow(NetworkError);
+
+    expect(events.find(({ event }) => event === 'server.response')).toMatchObject({
+      level: 'error', status: 502, body: '<html>upstream failed</html>'
+    });
+  });
+
+  test('logger failures do not change the SDK result', async () => {
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: () => { throw new Error('logger failed'); } });
+    global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ errorId: 0, balance: '1.00' }) }));
+    await expect(client.getBalance()).resolves.toBe(1);
+  });
+
+  test('parallel solves use different correlation IDs', async () => {
+    const events = [];
+    let nextTaskId = 100;
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event), pollingInterval: 1 });
+    global.fetch = jest.fn((url, options) => {
+      const body = JSON.parse(options.body);
+      const response = url.endsWith('/createTask')
+        ? { errorId: 0, taskId: nextTaskId++ }
+        : { errorId: 0, status: 'ready', solution: { token: `token-${body.taskId}` } };
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(response) });
+    });
+    const task = () => new Tasks.RecaptchaV2Proxyless({ websiteURL: 'https://example.com', websiteKey: 'website_key' });
+
+    await Promise.all([client.solve(task()), client.solve(task())]);
+
+    const summaries = events.filter(({ event }) => event === 'solve.summary');
+    expect(summaries).toHaveLength(2);
+    expect(new Set(summaries.map(({ solveId }) => solveId)).size).toBe(2);
+    expect(new Set(summaries.map(({ taskId }) => taskId))).toEqual(new Set([100, 101]));
+  });
+
+  test('createTask failure summary has no task ID and explains the error', async () => {
+    const events = [];
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event) });
     global.fetch = jest.fn(() => Promise.resolve({
       ok: true,
       status: 200,
-      statusText: 'OK',
-      json: () => Promise.resolve(errorBody)
+      json: () => Promise.resolve({ errorId: 1, errorCode: 'ERROR_ZERO_BALANCE', errorDescription: 'No funds' })
+    }));
+    const task = new Tasks.RecaptchaV2Proxyless({ websiteURL: 'https://example.com', websiteKey: 'website_key' });
+
+    await expect(client.solve(task)).rejects.toThrow(ApiError);
+
+    const summary = events.find(({ event }) => event === 'solve.summary');
+    expect(summary).toMatchObject({ reason: 'api_error', createTaskRequestCount: 1, resultRequestCount: 0, totalRequestCount: 1 });
+    expect(summary).not.toHaveProperty('taskId');
+  });
+
+  test('debug sanitization omits binary data and redacts URL secrets', async () => {
+    const events = [];
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event) });
+    global.fetch = jest.fn(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ errorId: 0, taskId: 12345 }) }));
+    const task = new Tasks.ImageToText({ body: 'a'.repeat(500), comment: 'test' });
+
+    await client.createTask(task);
+    await client.createTask(new Tasks.RecaptchaV2Proxyless({
+      websiteURL: 'https://example.com/login?access_token=url-secret',
+      websiteKey: 'website_key'
     }));
 
-    await expect(client.getBalance()).rejects.toThrow(ApiError);
+    const requests = events.filter(({ event }) => event === 'server.request');
+    expect(requests[0].body.task.body).toBe('[OMITTED binary data; original length: 500]');
+    expect(requests[1].body.task.websiteURL).not.toContain('url-secret');
+    expect(JSON.stringify(events)).not.toContain('a'.repeat(200));
+  });
 
-    const responseLog = debug.mock.calls.find(([message]) => message.startsWith('[CaptchaClient] server response:'))?.[0];
-    expect(responseLog).toContain('"endpoint": "/getBalance"');
-    expect(responseLog).toContain('"errorCode": "ERROR_KEY_DOES_NOT_EXIST"');
-    expect(responseLog).toContain('"errorDescription": "Account not found"');
-    const responseLogIndex = debug.mock.calls.findIndex(([message]) => message.startsWith('[CaptchaClient] server response:'));
-    const failedLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] request failed');
-    expect(responseLogIndex).toBeLessThan(failedLogIndex);
-    debug.mockRestore();
+  test('solve timeout is a deadline for the complete operation', async () => {
+    const events = [];
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true, logger: (event) => events.push(event), timeout: 300, pollingInterval: 0 });
+    global.fetch = jest.fn()
+      .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve({
+        ok: true, status: 200, json: () => Promise.resolve({ errorId: 0, taskId: 12345 })
+      }), 100)))
+      .mockImplementationOnce((url, options) => new Promise((resolve, reject) => {
+        options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+      }));
+    const task = new Tasks.RecaptchaV2Proxyless({ websiteURL: 'https://example.com', websiteKey: 'website_key' });
+    const startedAt = performance.now();
+
+    await expect(client.solve(task)).rejects.toThrow(TimeoutError);
+
+    expect(performance.now() - startedAt).toBeLessThan(380);
+    expect(events.find(({ event }) => event === 'solve.summary')).toMatchObject({ reason: 'timeout', totalRequestCount: 2 });
   });
 
   test('aborts an HTTP request after timeout', async () => {

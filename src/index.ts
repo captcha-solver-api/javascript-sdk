@@ -1,5 +1,5 @@
 export { CaptchaClient } from './client.js';
-export type { CaptchaClientOptions, TaskResult, SolutionOf } from './client.js';
+export type { CaptchaClientOptions, DebugEvent, DebugLevel, DebugLogger, TaskResult, SolutionOf } from './client.js';
 export { ApiError, NetworkError, TimeoutError, ValidationError, CaptchaError } from './exceptions.js';
 export * as Tasks from './tasks.js';
 export type {

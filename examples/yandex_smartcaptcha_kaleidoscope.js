@@ -22,7 +22,7 @@ if (!process.env.CAPTCHA_API_KEY) {
 // STEP-01: Configure the SDK client with the API key.
 const captchaSolver = new CaptchaClient({
   clientKey: process.env.CAPTCHA_API_KEY,
-  debug: true
+  debug: process.env.CAPTCHA_DEBUG === '1'
 });
 const image = fs.readFileSync(
   new URL('./assets/yandex-smartcaptcha-kaleidoscope.jpg', import.meta.url)
