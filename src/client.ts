@@ -379,7 +379,7 @@ export class CaptchaClient {
     const createTime = result?.createTime; const endTime = result?.endTime;
     const fields: Array<[string, string] | null> = [
       ['status', status],
-      ['taskId', String(taskId)],
+      ['taskId', taskId === null ? '- (task was not created)' : String(taskId)],
       typeof taskType === 'string' ? ['taskType', taskType] : null,
       ['elapsed', `${((Date.now() - startedAt) / 1000).toFixed(3)}s`],
       typeof createTime === 'number' && typeof endTime === 'number' ? ['serverSolveTime', `${endTime - createTime}s`] : null,

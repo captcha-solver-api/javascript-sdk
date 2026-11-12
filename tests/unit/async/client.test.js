@@ -183,6 +183,20 @@ describe('CaptchaClient (async)', () => {
       });
     });
 
+    test('says the task was not created when createTask fails inside solve()', async () => {
+      client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
+      global.fetch = jest.fn(() => okResponse({ errorId: 1, errorCode: 'ERROR_KEY_DOES_NOT_EXIST', errorDescription: 'Key not found' }));
+
+      await expect(client.solve(recaptchaTask())).rejects.toThrow(ApiError);
+
+      expect(summaryOf()).toMatchObject({
+        status: 'not solved',
+        taskId: '- (task was not created)',
+        polls: '0',
+        error: 'ApiError ERROR_KEY_DOES_NOT_EXIST: Key not found'
+      });
+    });
+
     test('includes the transport cause hidden behind "fetch failed"', async () => {
       client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
       const cause = Object.assign(new Error('Connect Timeout Error (attempted address: api.captcha-solver.com:443, timeout: 10000ms)'), {
