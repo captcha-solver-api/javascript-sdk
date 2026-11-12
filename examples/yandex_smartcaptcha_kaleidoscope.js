@@ -2,8 +2,16 @@ import 'dotenv/config';
 import fs from 'node:fs';
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 
-const captchaSolver = new CaptchaClient({ clientKey: process.env.CAPTCHA_API_KEY });
-const image = fs.readFileSync('./examples/assets/yandex-smartcaptcha-kaleidoscope.jpg').toString('base64');
+if (!process.env.CAPTCHA_API_KEY) {
+  throw new Error('Set CAPTCHA_API_KEY in .env or in the current shell before running this example.');
+}
+
+const captchaSolver = new CaptchaClient({
+  clientKey: process.env.CAPTCHA_API_KEY
+});
+const image = fs.readFileSync(
+  new URL('./assets/yandex-smartcaptcha-kaleidoscope.jpg', import.meta.url)
+).toString('base64');
 
 const task = new Tasks.YandexSmartCaptchaKaleidoscopeTask({
   image,
@@ -11,5 +19,7 @@ const task = new Tasks.YandexSmartCaptchaKaleidoscopeTask({
 });
 
 captchaSolver.solve(task)
-  .then((clicks) => console.log('Slider arrow clicks:', clicks))
+  .then((clicks) => {
+    console.log('Captcha solved. Slider arrow clicks:', clicks);
+  })
   .catch(console.error);
