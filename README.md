@@ -745,8 +745,9 @@ RESPONSE (HTTP 200 OK):
   polls stay on one line.
 - Failed requests print the error the caller receives, e.g.
   `getTaskResult taskId=3668 -> failed: ApiError ERROR_TASK_FAILED: ...`, followed by
-  `REQUEST (POST <url>):` and, when the server answered, `RESPONSE (HTTP ...):`. A
-  failed `solve()` ends with a `SOLVE SUMMARY` whose `status` is `not solved` and
+  `REQUEST (POST <url>):` and `RESPONSE (HTTP ...):`. If the server never answered
+  (connection refused, timeout), the last line is
+  `RESPONSE: none - no response from the server (NetworkError)`. A failed `solve()` ends with a `SOLVE SUMMARY` whose `status` is `not solved` and
   which has an extra `error` line.
 - `serverSolveTime` comes from the API's `createTime` / `endTime`; the difference from
   `elapsed` is task creation plus waiting between polls.

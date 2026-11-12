@@ -175,6 +175,7 @@ describe('CaptchaClient (async)', () => {
       expect(lineOf('getBalance')).toContain(
         'failed: NetworkError: fetch failed <- ConnectTimeoutError UND_ERR_CONNECT_TIMEOUT: Connect Timeout Error (attempted address: api.captcha-solver.com:443, timeout: 10000ms)'
       );
+      expect(messageOf('getBalance').split('\n').at(-1)).toBe('RESPONSE: none - no response from the server (NetworkError)');
     });
 
     test('logs the error the caller receives, not the raw transport error', async () => {
@@ -187,6 +188,7 @@ describe('CaptchaClient (async)', () => {
 
       expect(lineOf('getBalance')).toMatch(/getBalance -> failed: TimeoutError: Request timed out after 10ms \(\d+ms\)$/);
       expect(lineOf('getBalance')).not.toContain('AbortError');
+      expect(messageOf('getBalance').split('\n').at(-1)).toBe('RESPONSE: none - no response from the server (TimeoutError)');
     });
   });
 
