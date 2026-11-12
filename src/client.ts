@@ -2,13 +2,14 @@ import { ApiError, NetworkError, TimeoutError, ValidationError } from './excepti
 import { __version__ } from './version.js';
 import type { BaseTask } from './tasks.js';
 
-const MAX_DEBUG_STRING_LENGTH = 200;
+const MAX_DEBUG_STRING_LENGTH = 120;
 const TRACE_ONLY_EVENTS = new Set([
   'client.initialized',
   'task.submission.started',
   'request.started',
   'request.completed',
   'poll.waiting',
+  'task.status.received',
   'task.solved'
 ]);
 let operationSequence = 0;
@@ -179,9 +180,16 @@ export class CaptchaClient {
       .join(' ');
     let message: string;
     if (event.event === 'server.request') {
-      message = `→ ${event.method} ${event.url} body=${JSON.stringify(event.body)}`;
+      const host = typeof event.url === 'string' ? new URL(event.url).host : 'unknown';
+      message = `→ ${event.method} ${event.endpoint} host=${host}\n    request body: ${JSON.stringify(event.body)}`;
     } else if (event.event === 'server.response') {
-      message = `← ${event.status} ${event.statusText || ''} ${event.endpoint} ${event.durationMs}ms body=${JSON.stringify(event.body)}`;
+      message = `← ${event.status} ${event.statusText || ''} ${event.endpoint} ${event.durationMs}ms\n    response body: ${JSON.stringify(event.body)}`;
+    } else if (event.event === 'solve.started') {
+      message = `START type=${event.taskClass} timeout=${event.timeoutMs}ms`;
+    } else if (event.event === 'task.created') {
+      message = `CREATED type=${event.taskType}`;
+    } else if (event.event === 'solve.summary') {
+      message = `DONE status=${event.status} time=${event.elapsedTime} requests=${event.totalRequestCount}${event.reason ? ` reason=${event.reason}` : ''}`;
     } else {
       const details = Object.entries(event)
         .filter(([key]) => !['timestamp', 'level', 'event', 'solveId', 'taskId', 'requestId'].includes(key))
@@ -205,7 +213,7 @@ export class CaptchaClient {
 
   private _newOperationId(prefix: 'solve' | 'request'): string {
     operationSequence += 1;
-    return `${prefix}-${Date.now().toString(36)}-${operationSequence.toString(36)}`;
+    return `${prefix}-${operationSequence.toString(36)}`;
   }
 
   private _errorDetails(error: unknown): Record<string, unknown> {
@@ -243,7 +251,7 @@ export class CaptchaClient {
     const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` };
     const requestContext = { ...context, requestId: this._newOperationId('request') };
     this._emitDebug('request.started', { endpoint, timeoutMs: effectiveTimeout }, 'debug', requestContext);
-    this._emitDebug('server.request', { method: 'POST', url, headers, body: payload }, 'debug', requestContext);
+    this._emitDebug('server.request', { method: 'POST', endpoint, url, headers, body: payload }, 'debug', requestContext);
     try {
       const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: controller.signal });
       let data: TaskResult & { errorCode?: string; errorDescription?: string; error?: string };
