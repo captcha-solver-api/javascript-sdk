@@ -696,6 +696,8 @@ const captchaSolver = new CaptchaClient({
 });
 ```
 
+A runnable version is in [examples/debug_mode.js](examples/debug_mode.js).
+
 Example output of `solve()`:
 
 ```text
@@ -837,7 +839,7 @@ matches this README.
 
 - **Image/click captchas** (`image_to_text.js`, `image_to_text_math.js`,
   `image_to_text_language_pool.js`, `coordinates.js`, `coordinates_traffic_lights.js`,
-  `yandex_smartcaptcha_image.js`, `yandex_smartcaptcha_kaleidoscope.js`) run end-to-end
+  `yandex_smartcaptcha_image.js`, `yandex_smartcaptcha_kaleidoscope.js`, `debug_mode.js`) run end-to-end
   with nothing but a valid `CAPTCHA_API_KEY` -- they read sample images bundled in
   [examples/assets](examples/assets), no target page needed.
 - **Token captchas** (`recaptcha_v2.js`, `recaptcha_v2_enterprise.js`, `recaptcha_v3.js`,
@@ -861,6 +863,7 @@ export CAPTCHA_API_KEY=your_api_key
 node examples/balance.js
 node examples/image_to_text.js
 node examples/coordinates.js
+node examples/debug_mode.js
 ```
 
 Full details, an example index, and a per-type breakdown of what each script
