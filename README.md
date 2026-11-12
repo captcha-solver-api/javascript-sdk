@@ -572,7 +572,7 @@ import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 
 const captchaSolver = new CaptchaClient({ clientKey: 'your_api_key' });
 const task = new Tasks.YandexSmartCaptchaKaleidoscopeTask({
-  image: fs.readFileSync('captcha.jpg').toString('base64'),
+  image: fs.readFileSync('examples/assets/yandex-smartcaptcha-kaleidoscope.jpg').toString('base64'),
   task: '[15,24,4,13,10]'
 });
 captchaSolver.solve(task)

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
 
 const captchaSolver = new CaptchaClient({ clientKey: process.env.CAPTCHA_API_KEY });
-const image = fs.readFileSync('./captcha.jpg').toString('base64');
+const image = fs.readFileSync('./examples/assets/yandex-smartcaptcha-kaleidoscope.jpg').toString('base64');
 
 const task = new Tasks.YandexSmartCaptchaKaleidoscopeTask({
   image,
