@@ -754,7 +754,7 @@ RESPONSE (HTTP 200 OK, 740ms):
   which has an extra `error` line.
 - `serverSolveTime` comes from the API's `createTime` / `endTime`; the difference from
   `elapsed` is task creation plus waiting between polls.
-- The API key and other credentials (`proxyLogin`, `proxyPassword`, `cookies`) are
+- The API key, proxy details (`proxyAddress`, `proxyLogin`, `proxyPassword`) and `cookies` are
   replaced with `[MASKED]`, base64 images with their length, and other long strings
   such as solution tokens are shortened. The output is safe to attach to bug reports.
 

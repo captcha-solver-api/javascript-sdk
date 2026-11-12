@@ -140,6 +140,26 @@ describe('CaptchaClient (async)', () => {
       expect(sectionsOf('createTask')['REQUEST (POST https://api.captcha-solver.com/createTask)'].task.body).toBe('[base64, 1000 chars]');
     });
 
+    test('masks proxy address and credentials', async () => {
+      client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
+      global.fetch = jest.fn(() => okResponse({ errorId: 0, taskId: 1 }));
+
+      await client.createTask(new Tasks.Turnstile({
+        websiteURL: 'https://example.com',
+        websiteKey: 'website_key',
+        proxyType: 'http',
+        proxyAddress: '203.0.113.7',
+        proxyPort: 8080,
+        proxyLogin: 'proxy_user',
+        proxyPassword: 'proxy_pass'
+      }));
+
+      const { task } = sectionsOf('createTask')['REQUEST (POST https://api.captcha-solver.com/createTask)'];
+      expect(task).toMatchObject({ proxyAddress: '[MASKED]', proxyPort: 8080, proxyLogin: '[MASKED]', proxyPassword: '[MASKED]' });
+      const logged = JSON.stringify(debug.mock.calls);
+      for (const secret of ['203.0.113.7', 'proxy_user', 'proxy_pass', 'secret_key']) expect(logged).not.toContain(secret);
+    });
+
     test('logs the API error response and adds the error to a not-solved summary', async () => {
       client = new CaptchaClient({ clientKey: 'secret_key', debug: true, pollingInterval: 1 });
       global.fetch = jest.fn()

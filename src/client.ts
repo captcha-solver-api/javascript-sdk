@@ -4,7 +4,7 @@ import type { BaseTask } from './tasks.js';
 
 const MAX_DEBUG_STRING_LENGTH = 200;
 const DEBUG_STRING_EDGE_LENGTH = 40;
-const MASKED_DEBUG_FIELDS = /^(authorization|clientKey|cookie|cookies|password|proxyLogin|proxyPassword)$/i;
+const MASKED_DEBUG_FIELDS = /^(authorization|clientKey|cookie|cookies|password|proxyAddress|proxyLogin|proxyPassword)$/i;
 /** Task fields that carry base64 images; their content is never useful in a log. */
 const BASE64_DEBUG_FIELDS = /^(body|image|imgInstructions)$/;
 
