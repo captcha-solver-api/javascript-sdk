@@ -39,6 +39,37 @@ describe('CaptchaClient (async)', () => {
     expect(requestOptions.headers['X-SDK']).toBe('javascript-sdk/1.1.0');
   });
 
+  test('debug mode logs sanitized request lifecycle events', async () => {
+    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
+    client = new CaptchaClient({ clientKey: 'secret_key', debug: true });
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ errorId: 0, balance: '1.00' })
+    }));
+
+    await client.getBalance();
+
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] request started', { endpoint: '/getBalance' });
+    expect(debug).toHaveBeenCalledWith('[CaptchaClient] request completed', { endpoint: '/getBalance', status: 200 });
+    expect(JSON.stringify(debug.mock.calls)).not.toContain('secret_key');
+    debug.mockRestore();
+  });
+
+  test('debug mode is silent by default', async () => {
+    const debug = jest.spyOn(console, 'debug').mockImplementation(() => {});
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ errorId: 0, balance: '1.00' })
+    }));
+
+    await client.getBalance();
+
+    expect(debug).not.toHaveBeenCalled();
+    debug.mockRestore();
+  });
+
   test('aborts an HTTP request after timeout', async () => {
     client.timeout = 10;
     global.fetch = jest.fn((url, options) => new Promise((resolve, reject) => {

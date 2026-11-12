@@ -24,6 +24,12 @@ export interface CaptchaClientOptions {
    * @defaultValue `5000`
    */
   pollingInterval?: number;
+  /**
+   * Print request and polling lifecycle events to `console.debug`.
+   * API keys, task payloads, and solutions are never included.
+   * @defaultValue `false`
+   */
+  debug?: boolean;
 }
 
 /** Raw response of `/getTaskResult` (and, structurally, of every other API endpoint). */
@@ -72,14 +78,23 @@ export class CaptchaClient {
   timeout: number;
   /** Delay between polls inside {@link solve}, in milliseconds. */
   pollingInterval: number;
+  /** Whether lifecycle debug logging is enabled. */
+  debug: boolean;
 
   /**
    * @param options - Client options; only `clientKey` is required.
    * @throws {ValidationError} If `clientKey` is empty.
    */
-  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000 }: CaptchaClientOptions = {} as CaptchaClientOptions) {
+  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000, debug = false }: CaptchaClientOptions = {} as CaptchaClientOptions) {
     if (!clientKey) throw new ValidationError('clientKey is required');
-    this.clientKey = clientKey; this.baseUrl = baseUrl; this.timeout = timeout; this.pollingInterval = pollingInterval;
+    this.clientKey = clientKey; this.baseUrl = baseUrl; this.timeout = timeout; this.pollingInterval = pollingInterval; this.debug = debug;
+  }
+
+  /** Write a sanitized lifecycle event when debug mode is enabled. */
+  private _debug(message: string, details?: Record<string, unknown>): void {
+    if (!this.debug) return;
+    if (details) console.debug(`[CaptchaClient] ${message}`, details);
+    else console.debug(`[CaptchaClient] ${message}`);
   }
 
   /**
@@ -97,13 +112,16 @@ export class CaptchaClient {
    */
   protected async _request(endpoint: string, payload: Record<string, unknown>): Promise<TaskResult> {
     const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), this.timeout);
+    this._debug('request started', { endpoint });
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` }, body: JSON.stringify(payload), signal: controller.signal });
       if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
       const data = await response.json() as TaskResult & { errorCode?: string; errorDescription?: string; error?: string };
       if (data.errorId !== 0) throw new ApiError(data.errorCode || 'UNKNOWN_ERROR', data.errorDescription || data.error || 'Unknown API error');
+      this._debug('request completed', { endpoint, status: response.status });
       return data;
     } catch (error) {
+      this._debug('request failed', { endpoint, error: error instanceof Error ? error.name : 'UnknownError' });
       if (error instanceof ApiError || error instanceof NetworkError) throw error;
       if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') throw new TimeoutError(`Request timed out after ${this.timeout}ms`);
       throw new NetworkError(error instanceof Error ? error.message : String(error), error);
@@ -131,7 +149,9 @@ export class CaptchaClient {
    */
   async createTask(task: BaseTask, languagePool: string | null = null): Promise<number> {
     const payload: Record<string, unknown> = { clientKey: this.clientKey, task: task.toDict() }; if (languagePool !== null) payload.languagePool = languagePool;
-    return (await this._request('/createTask', payload)).taskId as number;
+    const taskId = (await this._request('/createTask', payload)).taskId as number;
+    this._debug('task created', { taskId });
+    return taskId;
   }
 
   /**
@@ -195,7 +215,8 @@ export class CaptchaClient {
       const remaining = this.timeout - (Date.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
       await new Promise(resolve => setTimeout(resolve, Math.min(this.pollingInterval, remaining)));
       if (Date.now() - startedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
-      const result = await this.getTaskResult(taskId); if (result.status === 'ready') return (result.solution ?? {}) as SolutionOf<T>;
+      const result = await this.getTaskResult(taskId); this._debug('task status received', { taskId, status: result.status });
+      if (result.status === 'ready') { this._debug('task solved', { taskId }); return (result.solution ?? {}) as SolutionOf<T>; }
     }
   }
 }

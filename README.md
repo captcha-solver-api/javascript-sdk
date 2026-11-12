@@ -35,11 +35,13 @@ Full API reference (all endpoints, error codes, captcha-type details): **https:/
   - [Image to Text](#image-to-text)
   - [GeeTest (v3 & v4)](#geetest-v3--v4)
   - [Yandex SmartCaptcha](#yandex-smartcaptcha)
+    - [Kaleidoscope puzzle](#kaleidoscope-puzzle)
   - [Coordinates (click captcha)](#coordinates-click-captcha)
   - [Tencent](#tencent)
 - [Advanced Usage](#advanced-usage)
   - [Check balance](#check-balance)
   - [Custom timeout and polling](#custom-timeout-and-polling)
+  - [Debug mode](#debug-mode)
   - [Worker language pool](#worker-language-pool)
   - [Solving multiple captchas in parallel](#solving-multiple-captchas-in-parallel)
   - [Error handling](#error-handling)
@@ -674,6 +676,19 @@ const captchaSolver = new CaptchaClient({
   clientKey: 'your_api_key',
   timeout: 180000,
   pollingInterval: 5000
+});
+```
+
+### Debug mode
+
+Enable `debug` to print sanitized request and polling lifecycle events. Debug output
+includes endpoint names, HTTP status codes, task IDs, and task statuses; it never
+includes the API key, task payload, or solution.
+
+```javascript
+const captchaSolver = new CaptchaClient({
+  clientKey: 'your_api_key',
+  debug: true
 });
 ```
 
