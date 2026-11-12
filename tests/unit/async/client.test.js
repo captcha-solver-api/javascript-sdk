@@ -72,8 +72,9 @@ describe('CaptchaClient (async)', () => {
 
     await client.getBalance();
 
-    expect(debug.mock.calls[0][0]).toMatch(/^\d{4}-\d{2}-\d{2}T.* DEBUG captcha-solver request=request-\w+ → POST \/getBalance host=api\.captcha-solver\.com\n    request body:/);
-    expect(debug.mock.calls[1][0]).toMatch(/ DEBUG captcha-solver request=request-\w+ ← 200 OK \/getBalance \d+ms\n    response body:/);
+    expect(debug.mock.calls[0][0]).toMatch(/^\d{4}-\d{2}-\d{2}T.* DEBUG captcha-solver request=.* → POST https:\/\/api\.captcha-solver\.com\/getBalance body=/);
+    expect(debug.mock.calls[1][0]).toMatch(/ DEBUG captcha-solver request=.* ← 200 OK \/getBalance \d+ms body=/);
+    expect(debug.mock.calls.every((call) => !call[0].includes('\n'))).toBe(true);
     debug.mockRestore();
   });
 
