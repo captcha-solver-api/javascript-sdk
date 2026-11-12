@@ -122,6 +122,13 @@ export class CaptchaClient {
     else console.debug(`[CaptchaClient] ${message}`);
   }
 
+  /** Print an HTTP exchange as one labelled JSON block instead of an ambiguous console object. */
+  private _debugServerExchange(message: 'server request' | 'server response', details: Record<string, unknown>): void {
+    if (!this.debug) return;
+    const json = JSON.stringify(this._sanitizeForDebug(details), null, 2);
+    console.debug(`[CaptchaClient] ${message}:\n${json}`);
+  }
+
   /**
    * Send one JSON `POST` request to the API and validate the response envelope.
    *
@@ -141,19 +148,19 @@ export class CaptchaClient {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` };
     this._debug('request started', { endpoint });
-    this._debug('server request', { method: 'POST', url, headers, body: payload });
+    this._debugServerExchange('server request', { method: 'POST', url, headers, body: payload });
     try {
       const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), signal: controller.signal });
       let data: TaskResult & { errorCode?: string; errorDescription?: string; error?: string };
       try {
         data = await response.json() as typeof data;
       } catch (parseError) {
-        this._debug('server response', { endpoint, status: response.status, statusText: response.statusText, body: '[unavailable: invalid JSON]' });
+        this._debugServerExchange('server response', { endpoint, status: response.status, statusText: response.statusText, body: '[unavailable: invalid JSON]' });
         if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
         throw parseError;
       }
       // Log the server payload first; lifecycle messages below explain how the SDK interpreted it.
-      this._debug('server response', { endpoint, status: response.status, statusText: response.statusText, body: data });
+      this._debugServerExchange('server response', { endpoint, status: response.status, statusText: response.statusText, body: data });
       if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
       if (data.errorId !== 0) throw new ApiError(data.errorCode || 'UNKNOWN_ERROR', data.errorDescription || data.error || 'Unknown API error');
       this._debug('request completed', { endpoint, status: response.status, durationMs: Date.now() - startedAt });

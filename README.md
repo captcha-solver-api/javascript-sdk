@@ -689,6 +689,9 @@ and the number of `/getTaskResult` requests. Credential
 fields are replaced with `[REDACTED]`; long strings such as base64 images and solution
 tokens are truncated to keep the output readable.
 
+Server exchanges are printed as single labelled JSON blocks, so the response body
+always remains visually attached to `[CaptchaClient] server response` in the console.
+
 ```javascript
 // Create a client with detailed, sanitized lifecycle logging enabled.
 const captchaSolver = new CaptchaClient({

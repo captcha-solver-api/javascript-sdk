@@ -51,22 +51,13 @@ describe('CaptchaClient (async)', () => {
     await client.getBalance();
 
     expect(debug).toHaveBeenCalledWith('[CaptchaClient] request started', { endpoint: '/getBalance' });
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] server request', {
-      method: 'POST',
-      url: 'https://api.captcha-solver.com/getBalance',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-SDK': 'javascript-sdk/1.1.0'
-      },
-      body: { clientKey: '[REDACTED]' }
-    });
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] server response', {
-      endpoint: '/getBalance',
-      status: 200,
-      statusText: undefined,
-      body: { errorId: 0, balance: '1.00' }
-    });
+    const requestLog = debug.mock.calls.find(([message]) => message.startsWith('[CaptchaClient] server request:'))?.[0];
+    expect(requestLog).toContain('"url": "https://api.captcha-solver.com/getBalance"');
+    expect(requestLog).toContain('"clientKey": "[REDACTED]"');
+    const responseLog = debug.mock.calls.find(([message]) => message.startsWith('[CaptchaClient] server response:'))?.[0];
+    expect(responseLog).toContain('"endpoint": "/getBalance"');
+    expect(responseLog).toContain('"status": 200');
+    expect(responseLog).toContain('"balance": "1.00"');
     expect(debug).toHaveBeenCalledWith('[CaptchaClient] client initialized', {
       baseUrl: 'https://api.captcha-solver.com',
       timeout: 120000,
@@ -77,7 +68,7 @@ describe('CaptchaClient (async)', () => {
       status: 200,
       durationMs: expect.any(Number)
     });
-    const responseLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] server response');
+    const responseLogIndex = debug.mock.calls.findIndex(([message]) => message.startsWith('[CaptchaClient] server response:'));
     const completedLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] request completed');
     expect(responseLogIndex).toBeLessThan(completedLogIndex);
     expect(JSON.stringify(debug.mock.calls)).not.toContain('secret_key');
@@ -133,7 +124,7 @@ describe('CaptchaClient (async)', () => {
     expect(logged).not.toContain(`start-${'x'.repeat(300)}-end`);
     expect(logged).not.toContain('secret_key');
     const resultResponseLogIndex = debug.mock.calls.findIndex(([message, details]) =>
-      message === '[CaptchaClient] server response' && details.endpoint === '/getTaskResult'
+      message.startsWith('[CaptchaClient] server response:') && message.includes('"endpoint": "/getTaskResult"')
     );
     const resultCompletedLogIndex = debug.mock.calls.findIndex(([message, details]) =>
       message === '[CaptchaClient] request completed' && details.endpoint === '/getTaskResult'
@@ -206,13 +197,11 @@ describe('CaptchaClient (async)', () => {
 
     await expect(client.getBalance()).rejects.toThrow(ApiError);
 
-    expect(debug).toHaveBeenCalledWith('[CaptchaClient] server response', {
-      endpoint: '/getBalance',
-      status: 200,
-      statusText: 'OK',
-      body: errorBody
-    });
-    const responseLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] server response');
+    const responseLog = debug.mock.calls.find(([message]) => message.startsWith('[CaptchaClient] server response:'))?.[0];
+    expect(responseLog).toContain('"endpoint": "/getBalance"');
+    expect(responseLog).toContain('"errorCode": "ERROR_KEY_DOES_NOT_EXIST"');
+    expect(responseLog).toContain('"errorDescription": "Account not found"');
+    const responseLogIndex = debug.mock.calls.findIndex(([message]) => message.startsWith('[CaptchaClient] server response:'));
     const failedLogIndex = debug.mock.calls.findIndex(([message]) => message === '[CaptchaClient] request failed');
     expect(responseLogIndex).toBeLessThan(failedLogIndex);
     debug.mockRestore();
