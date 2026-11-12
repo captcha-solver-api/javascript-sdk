@@ -252,23 +252,38 @@ export class CaptchaClient {
    */
   async solve<T extends BaseTask<any>>(task: T, languagePool: string | null = null): Promise<SolutionOf<T>> {
     const taskType = task.constructor.name;
+    const startedAt = Date.now();
+    let taskId: number | null = null;
+    let resultRequestCount = 0;
     this._debug('solve started', { taskType });
-    const taskId = await this.createTask(task, languagePool); const startedAt = Date.now();
-    let pollAttempt = 0;
-    while (true) {
-      const remaining = this.timeout - (Date.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
-      const delayMs = Math.min(this.pollingInterval, remaining);
-      pollAttempt += 1;
-      this._debug('waiting before poll', { taskId, pollAttempt, delayMs });
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-      if (Date.now() - startedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
-      const result = await this.getTaskResult(taskId);
-      const elapsedMs = Date.now() - startedAt;
-      this._debug('task status received', { taskId, pollAttempt, status: result.status, elapsedMs });
-      if (result.status === 'ready') {
-        this._debug('task solved', { taskId, pollAttempts: pollAttempt, elapsedMs });
-        return (result.solution ?? {}) as SolutionOf<T>;
+    try {
+      taskId = await this.createTask(task, languagePool);
+      let pollAttempt = 0;
+      while (true) {
+        const remaining = this.timeout - (Date.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
+        const delayMs = Math.min(this.pollingInterval, remaining);
+        pollAttempt += 1;
+        this._debug('waiting before poll', { taskId, pollAttempt, delayMs });
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        if (Date.now() - startedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
+        resultRequestCount += 1;
+        const result = await this.getTaskResult(taskId);
+        const elapsedMs = Date.now() - startedAt;
+        this._debug('task status received', { taskId, pollAttempt, status: result.status, elapsedMs });
+        if (result.status === 'ready') {
+          this._debug('task solved', { taskId, pollAttempts: pollAttempt, elapsedMs });
+          this._debug('solve summary', { status: 'solved', captchaId: taskId, elapsedMs, resultRequestCount });
+          return (result.solution ?? {}) as SolutionOf<T>;
+        }
       }
+    } catch (error) {
+      this._debug('solve summary', {
+        status: 'not solved',
+        captchaId: taskId,
+        elapsedMs: Date.now() - startedAt,
+        resultRequestCount
+      });
+      throw error;
     }
   }
 }
