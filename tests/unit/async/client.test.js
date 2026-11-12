@@ -246,6 +246,21 @@ describe('CaptchaClient (async)', () => {
       expect(messageOf('getBalance').split('\n').at(-1)).toMatch(/^RESPONSE \(HTTP 502 Bad Gateway, \d+ms\): body is not valid JSON$/);
     });
 
+    test('a failing debug output never changes what the caller gets', async () => {
+      debug.mockImplementation(() => { throw new Error('console is broken'); });
+      client = new CaptchaClient({ clientKey: 'secret_key', debug: true, pollingInterval: 1 });
+      global.fetch = jest.fn()
+        .mockImplementationOnce(() => okResponse({ errorId: 0, taskId: 12345 }))
+        .mockImplementationOnce(() => okResponse({ errorId: 0, status: 'ready', solution: { gRecaptchaResponse: 'token' } }))
+        .mockImplementationOnce(() => okResponse({ errorId: 1, errorCode: 'ERROR_KEY_DOES_NOT_EXIST', errorDescription: 'Key not found' }));
+
+      await expect(client.solve(recaptchaTask())).resolves.toEqual({ gRecaptchaResponse: 'token' });
+      const error = await client.getBalance().catch((e) => e);
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error.errorCode).toBe('ERROR_KEY_DOES_NOT_EXIST');
+      expect(debug).toHaveBeenCalled();
+    });
+
     test('says the body was not received when the timeout hits while reading it', async () => {
       client = new CaptchaClient({ clientKey: 'secret_key', debug: true, timeout: 20 });
       // Headers arrive at once; the body only fails when the request is aborted by the timeout.

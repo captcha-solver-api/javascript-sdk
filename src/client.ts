@@ -172,12 +172,23 @@ export class CaptchaClient {
    */
   private _debug(message: string, sections: DebugSection[] = []): void {
     if (!this.debug) return;
-    const lines = [`[${formatDebugTimestamp(new Date())}] [CaptchaClient] ${message}`];
-    for (const { title, value } of sections) {
-      if (title) lines.push(value === undefined ? title : `${title}:`);
-      if (value !== undefined) lines.push(JSON.stringify(this._sanitizeForDebug(value), null, 2));
-    }
-    console.debug(lines.join('\n'));
+    this._ignoreDebugFailure(() => {
+      const lines = [`[${formatDebugTimestamp(new Date())}] [CaptchaClient] ${message}`];
+      for (const { title, value } of sections) {
+        if (title) lines.push(value === undefined ? title : `${title}:`);
+        if (value !== undefined) lines.push(JSON.stringify(this._sanitizeForDebug(value), null, 2));
+      }
+      console.debug(lines.join('\n'));
+    });
+  }
+
+  /**
+   * Run debug-only code so that it can never change what the caller gets:
+   * a failure while building or printing a debug event (e.g. a replaced
+   * `console.debug` that throws) is swallowed instead of failing the request.
+   */
+  private _ignoreDebugFailure(write: () => void): void {
+    try { write(); } catch { /* debug output must not affect the request */ }
   }
 
   /**
@@ -214,7 +225,7 @@ export class CaptchaClient {
       }
       if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
       if (data!.errorId !== 0) throw new ApiError(data!.errorCode || 'UNKNOWN_ERROR', data!.errorDescription || data!.error || 'Unknown API error');
-      this._debugExchange(endpoint, payload, startedAt, { httpStatus, response: data });
+      this._ignoreDebugFailure(() => this._debugExchange(endpoint, payload, startedAt, { httpStatus, response: data }));
       return data!;
     } catch (error) {
       let failure: unknown = error;
@@ -223,7 +234,7 @@ export class CaptchaClient {
           ? new TimeoutError(`Request timed out after ${this.timeout}ms`)
           : new NetworkError(error instanceof Error ? error.message : String(error), error);
       }
-      this._debugExchange(endpoint, payload, startedAt, { error: failure, httpStatus, response: data, bodyNotJson });
+      this._ignoreDebugFailure(() => this._debugExchange(endpoint, payload, startedAt, { error: failure, httpStatus, response: data, bodyNotJson }));
       throw failure;
     } finally { clearTimeout(timer); }
   }
@@ -362,12 +373,12 @@ export class CaptchaClient {
         polls += 1;
         const result = await this.getTaskResult(taskId);
         if (result.status === 'ready') {
-          this._debugSolveSummary(task, startedAt, { status: 'solved', taskId, polls, result });
+          this._ignoreDebugFailure(() => this._debugSolveSummary(task, startedAt, { status: 'solved', taskId, polls, result }));
           return (result.solution ?? {}) as SolutionOf<T>;
         }
       }
     } catch (error) {
-      this._debugSolveSummary(task, startedAt, { status: 'not solved', taskId, polls, error });
+      this._ignoreDebugFailure(() => this._debugSolveSummary(task, startedAt, { status: 'not solved', taskId, polls, error }));
       throw error;
     }
   }
