@@ -2,6 +2,56 @@ import { ApiError, NetworkError, TimeoutError, ValidationError } from './excepti
 import { __version__ } from './version.js';
 import type { BaseTask } from './tasks.js';
 
+const MAX_DEBUG_STRING_LENGTH = 200;
+const DEBUG_STRING_EDGE_LENGTH = 40;
+const MASKED_DEBUG_FIELDS = /^(authorization|clientKey|cookie|cookies|password|proxyAddress|proxyLogin|proxyPassword)$/i;
+/** Task fields that carry base64 images; their content is never useful in a log. */
+const BASE64_DEBUG_FIELDS = /^(body|image|imgInstructions)$/;
+
+/** Format a moment as local time with milliseconds and UTC offset: `2026-11-12 14:03:21.512 +03:00`. */
+function formatDebugTimestamp(date: Date): string {
+  const pad = (value: number, length = 2) => String(value).padStart(length, '0');
+  const offsetMinutes = -date.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absOffset = Math.abs(offsetMinutes);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+    + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)} `
+    + `${sign}${pad(Math.floor(absOffset / 60))}:${pad(absOffset % 60)}`;
+}
+
+/** Describe a single error: name, `code` when present (e.g. undici `UND_ERR_CONNECT_TIMEOUT`) and message. */
+function describeSingleDebugError(error: unknown): string {
+  if (error instanceof ApiError) return `${error.name} ${error.errorCode}: ${error.errorDescription}`;
+  if (error instanceof Error) {
+    const code = 'code' in error && typeof error.code === 'string' ? ` ${error.code}` : '';
+    return `${error.name}${code}: ${error.message}`;
+  }
+  return String(error);
+}
+
+/**
+ * Describe an error in one line, following `originalError` / `cause` links.
+ * `fetch` reports every transport failure as a bare `TypeError: fetch failed`;
+ * the actual reason (DNS, connect timeout, TLS) is only in its `cause`.
+ */
+function describeDebugError(error: unknown): string {
+  const parts: string[] = [];
+  let current: unknown = error;
+  for (let depth = 0; current !== undefined && current !== null && depth < 4; depth += 1) {
+    const description = describeSingleDebugError(current);
+    // NetworkError copies the message of the error it wraps; skip the duplicate link.
+    if (!(depth === 1 && error instanceof NetworkError && current instanceof Error && current.message === error.message)) parts.push(description);
+    current = current instanceof NetworkError ? current.originalError : (current as { cause?: unknown }).cause;
+  }
+  return parts.join(' <- ');
+}
+
+/** One part of a debug event below its line: an optional title and a JSON value. */
+interface DebugSection {
+  title?: string;
+  value?: unknown;
+}
+
 /** Options accepted by the {@link CaptchaClient} constructor. */
 export interface CaptchaClientOptions {
   /** Your Captcha Solver API key. Required. */
@@ -24,6 +74,15 @@ export interface CaptchaClientOptions {
    * @defaultValue `5000`
    */
   pollingInterval?: number;
+  /**
+   * Print one timestamped `console.debug` line per API request plus a final
+   * {@link CaptchaClient.solve} summary. Request and response bodies are added
+   * for task creation, errors and solved tasks; routine `processing` polls stay
+   * on one line. Credentials are masked, base64 images are replaced by their
+   * length and other long strings such as solution tokens are shortened.
+   * @defaultValue `false`
+   */
+  debug?: boolean;
 }
 
 /** Raw response of `/getTaskResult` (and, structurally, of every other API endpoint). */
@@ -72,14 +131,64 @@ export class CaptchaClient {
   timeout: number;
   /** Delay between polls inside {@link solve}, in milliseconds. */
   pollingInterval: number;
+  /** Whether lifecycle debug logging is enabled. */
+  debug: boolean;
 
   /**
    * @param options - Client options; only `clientKey` is required.
    * @throws {ValidationError} If `clientKey` is empty.
    */
-  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000 }: CaptchaClientOptions = {} as CaptchaClientOptions) {
+  constructor({ clientKey, baseUrl = 'https://api.captcha-solver.com', timeout = 120000, pollingInterval = 5000, debug = false }: CaptchaClientOptions = {} as CaptchaClientOptions) {
     if (!clientKey) throw new ValidationError('clientKey is required');
-    this.clientKey = clientKey; this.baseUrl = baseUrl; this.timeout = timeout; this.pollingInterval = pollingInterval;
+    this.clientKey = clientKey; this.baseUrl = baseUrl; this.timeout = timeout; this.pollingInterval = pollingInterval; this.debug = debug;
+    this._debug(`client initialized sdk=javascript-sdk/${__version__} baseUrl=${baseUrl} timeout=${timeout}ms pollingInterval=${pollingInterval}ms`);
+  }
+
+  /**
+   * Copy a value for debug output while keeping logs readable and safe to share.
+   * Credential fields are masked, base64 image fields are reduced to their
+   * length, and other long strings keep their edges so tokens stay comparable.
+   */
+  private _sanitizeForDebug(value: unknown, fieldName?: string): unknown {
+    if (fieldName && MASKED_DEBUG_FIELDS.test(fieldName)) return '[MASKED]';
+    if (typeof value === 'string' && fieldName && BASE64_DEBUG_FIELDS.test(fieldName)) return `[base64, ${value.length} chars]`;
+    if (typeof value === 'string' && value.length > MAX_DEBUG_STRING_LENGTH) {
+      return `${value.slice(0, DEBUG_STRING_EDGE_LENGTH)}...[${value.length} chars]...${value.slice(-DEBUG_STRING_EDGE_LENGTH)}`;
+    }
+    if (Array.isArray(value)) return value.map((item) => this._sanitizeForDebug(item));
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value).map(([key, item]) => [key, this._sanitizeForDebug(item, key)])
+      );
+    }
+    return value;
+  }
+
+  /**
+   * Write one debug event: a timestamped line, optionally followed by titled
+   * sections such as `REQUEST (POST <url>):` and `RESPONSE (HTTP 200 OK):`, each with a
+   * sanitized JSON value. Everything goes through a single `console.debug`
+   * call so the sections cannot be separated from their line.
+   */
+  private _debug(message: string, sections: DebugSection[] = []): void {
+    if (!this.debug) return;
+    this._ignoreDebugFailure(() => {
+      const lines = [`[${formatDebugTimestamp(new Date())}] [CaptchaClient] ${message}`];
+      for (const { title, value } of sections) {
+        if (title) lines.push(value === undefined ? title : `${title}:`);
+        if (value !== undefined) lines.push(JSON.stringify(this._sanitizeForDebug(value), null, 2));
+      }
+      console.debug(lines.join('\n'));
+    });
+  }
+
+  /**
+   * Run debug-only code so that it can never change what the caller gets:
+   * a failure while building or printing a debug event (e.g. a replaced
+   * `console.debug` that throws) is swallowed instead of failing the request.
+   */
+  private _ignoreDebugFailure(write: () => void): void {
+    try { write(); } catch { /* debug output must not affect the request */ }
   }
 
   /**
@@ -97,17 +206,79 @@ export class CaptchaClient {
    */
   protected async _request(endpoint: string, payload: Record<string, unknown>): Promise<TaskResult> {
     const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), this.timeout);
+    const startedAt = Date.now();
+    const headers = { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` };
+    let httpStatus: string | undefined;
+    let bodyNotJson = false;
+    let data: (TaskResult & { errorCode?: string; errorDescription?: string; error?: string }) | undefined;
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-SDK': `javascript-sdk/${__version__}` }, body: JSON.stringify(payload), signal: controller.signal });
+      const response = await fetch(`${this.baseUrl}${endpoint}`, { method: 'POST', headers, body: JSON.stringify(payload), signal: controller.signal });
+      httpStatus = `${response.status} ${response.statusText ?? ''}`.trim();
+      try {
+        data = await response.json() as typeof data;
+      } catch (parseError) {
+        // A SyntaxError means the body arrived but is not JSON; anything else (e.g. AbortError
+        // on timeout) means the body never fully arrived.
+        bodyNotJson = parseError instanceof SyntaxError;
+        if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
+        throw parseError;
+      }
       if (!response.ok) throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
-      const data = await response.json() as TaskResult & { errorCode?: string; errorDescription?: string; error?: string };
-      if (data.errorId !== 0) throw new ApiError(data.errorCode || 'UNKNOWN_ERROR', data.errorDescription || data.error || 'Unknown API error');
-      return data;
+      if (data!.errorId !== 0) throw new ApiError(data!.errorCode || 'UNKNOWN_ERROR', data!.errorDescription || data!.error || 'Unknown API error');
+      this._ignoreDebugFailure(() => this._debugExchange(endpoint, payload, startedAt, { httpStatus, response: data }));
+      return data!;
     } catch (error) {
-      if (error instanceof ApiError || error instanceof NetworkError) throw error;
-      if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') throw new TimeoutError(`Request timed out after ${this.timeout}ms`);
-      throw new NetworkError(error instanceof Error ? error.message : String(error), error);
+      let failure: unknown = error;
+      if (!(error instanceof ApiError || error instanceof NetworkError)) {
+        failure = error && typeof error === 'object' && 'name' in error && error.name === 'AbortError'
+          ? new TimeoutError(`Request timed out after ${this.timeout}ms`)
+          : new NetworkError(error instanceof Error ? error.message : String(error), error);
+      }
+      this._ignoreDebugFailure(() => this._debugExchange(endpoint, payload, startedAt, { error: failure, httpStatus, response: data, bodyNotJson }));
+      throw failure;
     } finally { clearTimeout(timer); }
+  }
+
+  /**
+   * Log one API exchange. The line names the endpoint, task type or task ID,
+   * outcome and duration. Below it come `REQUEST (POST <url>):` (the body sent,
+   * credentials masked) and `RESPONSE (HTTP ...):` (the server body as
+   * received); both are skipped for routine `processing` polls so long waits
+   * stay readable.
+   */
+  private _debugExchange(endpoint: string, payload: Record<string, unknown>, startedAt: number, outcome: { response?: TaskResult; error?: unknown; httpStatus?: string; bodyNotJson?: boolean }): void {
+    if (!this.debug) return;
+    const task = payload.task as Record<string, unknown> | undefined;
+    const label = [
+      endpoint.replace(/^\//, ''),
+      typeof task?.type === 'string' ? task.type : null,
+      payload.taskId !== undefined ? `taskId=${payload.taskId}` : null
+    ].filter(Boolean).join(' ');
+    const durationMs = Date.now() - startedAt;
+    const { response, error, httpStatus, bodyNotJson } = outcome;
+    const errorName = error instanceof Error ? error.name : 'Error';
+
+    const sections: DebugSection[] = [{ title: `REQUEST (POST ${this.baseUrl}${endpoint})`, value: payload }];
+    // httpStatus is set only once the server answered; without it the request failed in transit,
+    // and an explicit "none" line keeps every REQUEST paired with a RESPONSE.
+    if (!httpStatus) {
+      sections.push({ title: `RESPONSE: none - no response from the server (${errorName}, ${durationMs}ms)` });
+    } else if (response !== undefined) {
+      sections.push({ title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms)`, value: response });
+    } else if (bodyNotJson) {
+      sections.push({ title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms): body is not valid JSON` });
+    } else {
+      sections.push({ title: `RESPONSE (HTTP ${httpStatus}, ${durationMs}ms): body was not received (${errorName})` });
+    }
+
+    if (error === undefined) {
+      const result = response?.status
+        ?? (response?.taskId !== undefined ? `taskId=${response.taskId}` : undefined)
+        ?? (response?.balance !== undefined ? `balance=${response.balance}` : 'ok');
+      this._debug(`${label} -> ${result} (${durationMs}ms)`, response?.status === 'processing' ? [] : sections);
+      return;
+    }
+    this._debug(`${label} -> failed: ${describeDebugError(error)} (${durationMs}ms)`, sections);
   }
 
   /**
@@ -190,12 +361,52 @@ export class CaptchaClient {
    * ```
    */
   async solve<T extends BaseTask<any>>(task: T, languagePool: string | null = null): Promise<SolutionOf<T>> {
-    const taskId = await this.createTask(task, languagePool); const startedAt = Date.now();
-    while (true) {
-      const remaining = this.timeout - (Date.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
-      await new Promise(resolve => setTimeout(resolve, Math.min(this.pollingInterval, remaining)));
-      if (Date.now() - startedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
-      const result = await this.getTaskResult(taskId); if (result.status === 'ready') return (result.solution ?? {}) as SolutionOf<T>;
+    const startedAt = Date.now();
+    let taskId: number | null = null;
+    let polls = 0;
+    try {
+      taskId = await this.createTask(task, languagePool);
+      while (true) {
+        const remaining = this.timeout - (Date.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
+        await new Promise(resolve => setTimeout(resolve, Math.min(this.pollingInterval, remaining)));
+        if (Date.now() - startedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
+        polls += 1;
+        const result = await this.getTaskResult(taskId);
+        if (result.status === 'ready') {
+          this._ignoreDebugFailure(() => this._debugSolveSummary(task, startedAt, { status: 'solved', taskId, polls, result }));
+          return (result.solution ?? {}) as SolutionOf<T>;
+        }
+      }
+    } catch (error) {
+      this._ignoreDebugFailure(() => this._debugSolveSummary(task, startedAt, { status: 'not solved', taskId, polls, error }));
+      throw error;
     }
+  }
+
+  /**
+   * Log the final {@link solve} outcome. `serverSolveTime` comes from the API's
+   * `createTime` / `endTime` and shows how much of the total wait was spent
+   * solving versus creating the task and waiting between polls.
+   */
+  private _debugSolveSummary(task: BaseTask, startedAt: number, outcome: { status: 'solved' | 'not solved'; taskId: number | null; polls: number; result?: TaskResult; error?: unknown }): void {
+    if (!this.debug) return;
+    const { status, taskId, polls, result, error } = outcome;
+    let taskType: unknown;
+    try { taskType = task.toDict().type; } catch { taskType = undefined; }
+    const createTime = result?.createTime; const endTime = result?.endTime;
+    const fields: Array<[string, string] | null> = [
+      ['status', status],
+      ['taskId', taskId === null ? '- (task was not created)' : String(taskId)],
+      typeof taskType === 'string' ? ['taskType', taskType] : null,
+      ['elapsed', `${((Date.now() - startedAt) / 1000).toFixed(3)}s`],
+      typeof createTime === 'number' && typeof endTime === 'number' ? ['serverSolveTime', `${endTime - createTime}s`] : null,
+      ['polls', String(polls)],
+      error !== undefined ? ['error', describeDebugError(error)] : null
+    ];
+    const present = fields.filter((field): field is [string, string] => field !== null);
+    const width = Math.max(...present.map(([name]) => name.length)) + 1;
+    // One aligned "name: value" line per field; line breaks inside a value are flattened.
+    const lines = present.map(([name, value]) => `  ${`${name}:`.padEnd(width)} ${value.replace(/\s*\n\s*/g, ' ')}`);
+    this._debug(`SOLVE SUMMARY:\n${lines.join('\n')}`);
   }
 }

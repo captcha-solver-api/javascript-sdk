@@ -47,6 +47,7 @@ Additional one-scenario examples:
 - [`image_to_text_math.js`](image_to_text_math.js) — math CAPTCHA with an instruction image.
 - [`image_to_text_language_pool.js`](image_to_text_language_pool.js) — select the English worker pool.
 - [`coordinates_traffic_lights.js`](coordinates_traffic_lights.js) — click coordinates with an instruction image.
+- [`debug_mode.js`](debug_mode.js) — enable `debug: true` and watch the SDK's request, response and solve summary log.
 
 > **Important:** `geetest_v3.js` and `geetest_v3_proxy.js` contain a placeholder
 > initialization endpoint. Replace it with the target website's endpoint and

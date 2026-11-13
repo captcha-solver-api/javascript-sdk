@@ -35,11 +35,13 @@ Full API reference (all endpoints, error codes, captcha-type details): **https:/
   - [Image to Text](#image-to-text)
   - [GeeTest (v3 & v4)](#geetest-v3--v4)
   - [Yandex SmartCaptcha](#yandex-smartcaptcha)
+    - [Kaleidoscope puzzle](#kaleidoscope-puzzle)
   - [Coordinates (click captcha)](#coordinates-click-captcha)
   - [Tencent](#tencent)
 - [Advanced Usage](#advanced-usage)
   - [Check balance](#check-balance)
   - [Custom timeout and polling](#custom-timeout-and-polling)
+  - [Debug mode](#debug-mode)
   - [Worker language pool](#worker-language-pool)
   - [Solving multiple captchas in parallel](#solving-multiple-captchas-in-parallel)
   - [Error handling](#error-handling)
@@ -162,8 +164,9 @@ Constructor. Takes a single options object.
 |---|---|---|---|
 | `clientKey` | `string` | required | Your Captcha Solver API key. Throws `ValidationError` if empty. |
 | `baseUrl` | `string` | `https://api.captcha-solver.com` | API base URL. Override only for self-hosted/staging deployments. |
-| `timeout` | `number` | `120000` | Default max milliseconds `solve()` waits for a solution before throwing `TimeoutError`. |
+| `timeout` | `number` | `120000` | Per-request HTTP timeout and polling time budget used by `solve()`. |
 | `pollingInterval` | `number` | `5000` | Milliseconds between `getTaskResult` polls inside `solve()`. |
+| `debug` | `boolean` | `false` | Print timestamped, sanitized request and `solve()` diagnostics with `console.debug`. See [Debug mode](#debug-mode). |
 
 There's no manual connection pool to open or close -- `fetch` (via Node's built-in
 `undici`) already reuses keep-alive connections per host automatically, unlike Python's
@@ -179,8 +182,9 @@ solution -- wraps `createTask()` + `getTaskResult()` so you don't poll by hand.
 | `task` | task object | One of the classes from `Tasks` (see [Captcha Types](#captcha-types)). |
 | `languagePool` | `string \| null` | Optional worker pool selector, `'en'` or `'ru'`. Defaults to `null` (account default pool). |
 
-Returns a `Promise` resolving to the `solution` object once `status` is `'ready'` --
-its shape depends on the task type (see [Captcha Types](#captcha-types)).
+Returns a `Promise` resolving to the task-specific `solution` value once `status` is
+`'ready'`. Most tasks return an object; Yandex SmartCaptcha Kaleidoscope returns a
+string. See [Captcha Types](#captcha-types) for each result format.
 Rejects with `ApiError`, `TimeoutError`, or `NetworkError`.
 
 ### `createTask(task, languagePool)`
@@ -188,19 +192,20 @@ Rejects with `ApiError`, `TimeoutError`, or `NetworkError`.
 Submits `task` and returns a `Promise` resolving to its numeric task ID, without
 waiting for a solution. Same parameters as `solve()`. Use this instead of `solve()`
 only if you need to manage polling yourself (e.g. checking on many tasks from a
-different process). Rejects with `ApiError`, `NetworkError`.
+different process). Rejects with `ApiError`, `TimeoutError`, or `NetworkError`.
 
 ### `getTaskResult(taskId)`
 
-Fetches the current status of a task created with `createTask()`. Resolves to an
-object with a `status` key (`'processing'` or `'ready'`); when `'ready'`, also has a
-`solution` object. This is a single poll, not a wait -- call it repeatedly (as
-`solve()` does) until `status` is `'ready'`. Rejects with `ApiError`, `NetworkError`.
+Fetches the current status of a task created with `createTask()`. Resolves to the API
+response with a `status` key (`'processing'` or `'ready'`); when `'ready'`, it also
+has a task-specific `solution` value. This is a single poll, not a wait -- call it
+repeatedly (as `solve()` does) until `status` is `'ready'`. Rejects with `ApiError`,
+`TimeoutError`, or `NetworkError`.
 
 ### `getBalance()`
 
 Returns a `Promise` resolving to the account's current balance (`number`) in the
-account's currency. Rejects with `ApiError`, `NetworkError`.
+account's currency. Rejects with `ApiError`, `TimeoutError`, or `NetworkError`.
 
 ## Captcha Types
 
@@ -677,6 +682,26 @@ const captchaSolver = new CaptchaClient({
 });
 ```
 
+### Debug mode
+
+Enable `debug` to inspect how the SDK communicates with the API. It logs timestamped
+requests, server responses, errors, request duration, task status, and a final
+`solve()` summary with the task ID, elapsed time, and poll count.
+
+```javascript
+// Create a client with sanitized debug logging enabled.
+const captchaSolver = new CaptchaClient({
+  clientKey: 'your_api_key',
+  debug: true
+});
+```
+
+Credentials and cookies are masked, base64 images are replaced with their length,
+and long strings are shortened. Review logs before sharing them because URLs and
+custom task fields may still contain application-specific data.
+
+See [examples/debug_mode.js](examples/debug_mode.js) for a runnable example.
+
 ### Worker language pool
 
 Pass `languagePool` as the second argument to `solve()` (or `createTask()`) to pick a
@@ -756,9 +781,12 @@ matches this README.
 
 ## Running the examples
 
-- **Image/click captchas** (`image_to_text.js`, `coordinates.js`) run end-to-end
+- **Image/click captchas** (`image_to_text.js`, `image_to_text_math.js`,
+  `image_to_text_language_pool.js`, `coordinates.js`, `coordinates_traffic_lights.js`,
+  `yandex_smartcaptcha_image.js`, `yandex_smartcaptcha_kaleidoscope.js`, `debug_mode.js`) run end-to-end
   with nothing but a valid `CAPTCHA_API_KEY` -- they read sample images bundled in
   [examples/assets](examples/assets), no target page needed.
+- **Token captchas** (`recaptcha_v2.js`, `recaptcha_v2_enterprise.js`, `recaptcha_v3.js`,
   `turnstile.js`, `yandex_smartcaptcha.js`, `geetest_v4.js`, `tencent.js`) use
   placeholder values (`https://example.com/...`, `YOUR_WEBSITE_KEY`, `YOUR_APP_ID`,
   `YOUR_CAPTCHA_ID`) -- replace these with the real values from your own target
@@ -779,6 +807,7 @@ export CAPTCHA_API_KEY=your_api_key
 node examples/balance.js
 node examples/image_to_text.js
 node examples/coordinates.js
+node examples/debug_mode.js
 ```
 
 Full details, an example index, and a per-type breakdown of what each script
@@ -786,7 +815,7 @@ covers live in [examples/README.md](examples/README.md).
 
 ## Requirements
 
-- Node.js 18 or newer. Modern browser with fetch support.
+- Node.js 18 or newer. The repository examples also rely on Node.js APIs and `dotenv`.
 - Captcha Solver account with a valid API key.
 
 ## API Documentation
