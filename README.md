@@ -684,9 +684,10 @@ const captchaSolver = new CaptchaClient({
 
 ### Debug mode
 
-Enable `debug` to print one `console.debug` line per API request and a summary at the
-end of `solve()`. Every line starts with the local time, milliseconds and UTC offset,
-so the output can be matched against your application and server logs.
+Enable `debug` to print one `console.debug` event for each significant API exchange
+and a summary at the end of `solve()`. Each event starts with the local time,
+milliseconds and UTC offset, so the output can be matched against your application
+and server logs. Request and response JSON is grouped below the event's first line.
 
 ```javascript
 // Create a client with sanitized debug logging enabled.
@@ -701,15 +702,17 @@ A runnable version is in [examples/debug_mode.js](examples/debug_mode.js).
 Example output of `solve()`:
 
 ```text
-[2026-11-12 14:03:12.879 +03:00] [CaptchaClient] client initialized sdk=javascript-sdk/1.1.0 baseUrl=https://api.captcha-solver.com timeout=120000ms pollingInterval=5000ms
-[2026-11-12 14:03:17.204 +03:00] [CaptchaClient] createTask PazlCaptchaTask -> taskId=3668 (4325ms)
+[2026-11-13 12:41:02.879 +03:00] [CaptchaClient] client initialized sdk=javascript-sdk/1.1.0 baseUrl=https://api.captcha-solver.com timeout=120000ms pollingInterval=5000ms
+[2026-11-13 12:41:07.204 +03:00] [CaptchaClient] createTask ImageToTextTask -> taskId=3668 (4325ms)
 REQUEST (POST https://api.captcha-solver.com/createTask):
 {
   "clientKey": "[MASKED]",
   "task": {
-    "type": "PazlCaptchaTask",
-    "image": "[base64, 142668 chars]",
-    "task": "[7,15,14,0,11,6,6,0]"
+    "type": "ImageToTextTask",
+    "body": "[base64, 41188 chars]",
+    "numeric": 2,
+    "minLength": 4,
+    "maxLength": 6
   }
 }
 RESPONSE (HTTP 200 OK, 4325ms):
@@ -717,8 +720,8 @@ RESPONSE (HTTP 200 OK, 4325ms):
   "errorId": 0,
   "taskId": 3668
 }
-[2026-11-12 14:03:23.430 +03:00] [CaptchaClient] getTaskResult taskId=3668 -> processing (1226ms)
-[2026-11-12 14:03:29.170 +03:00] [CaptchaClient] getTaskResult taskId=3668 -> ready (740ms)
+[2026-11-13 12:41:13.430 +03:00] [CaptchaClient] getTaskResult taskId=3668 -> processing (1226ms)
+[2026-11-13 12:41:19.170 +03:00] [CaptchaClient] getTaskResult taskId=3668 -> ready (740ms)
 REQUEST (POST https://api.captcha-solver.com/getTaskResult):
 {
   "clientKey": "[MASKED]",
@@ -728,21 +731,24 @@ RESPONSE (HTTP 200 OK, 740ms):
 {
   "errorId": 0,
   "status": "ready",
-  "solution": "7",
+  "solution": {
+    "text": "wm47"
+  },
   "createTime": 1794515548,
   "endTime": 1794515556
 }
-[2026-11-12 14:03:29.171 +03:00] [CaptchaClient] SOLVE SUMMARY:
+[2026-11-13 12:41:19.171 +03:00] [CaptchaClient] SOLVE SUMMARY:
   status:          solved
   taskId:          3668
-  taskType:        PazlCaptchaTask
+  taskType:        ImageToTextTask
   elapsed:         16.292s
   serverSolveTime: 8s
   polls:           2
 ```
 
 - `REQUEST (POST <url>):` is the endpoint URL and JSON body the SDK sent;
-  `RESPONSE (HTTP ..., <n>ms):` is the server body exactly as received. They are printed for
+  `RESPONSE (HTTP ..., <n>ms):` is the parsed server JSON after the same masking and
+  shortening used for request data. They are printed for
   task creation, balance checks, errors, and the `ready` result; routine `processing`
   polls stay on one line.
 - Failed requests print the error the caller receives, e.g.
@@ -756,7 +762,8 @@ RESPONSE (HTTP 200 OK, 740ms):
   `elapsed` is task creation plus waiting between polls.
 - The API key, proxy details (`proxyAddress`, `proxyLogin`, `proxyPassword`) and `cookies` are
   replaced with `[MASKED]`, base64 images with their length, and other long strings
-  such as solution tokens are shortened. The output is safe to attach to bug reports.
+  such as solution tokens are shortened. Review the output before attaching it to a bug
+  report because URLs and custom task fields can still contain application-specific data.
 
 ### Worker language pool
 
