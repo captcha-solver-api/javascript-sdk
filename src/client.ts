@@ -214,6 +214,12 @@ export class CaptchaClient {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, { method: 'POST', headers, body: JSON.stringify(payload), signal: controller.signal });
       httpStatus = `${response.status} ${response.statusText ?? ''}`.trim();
+      // Without debug nobody looks at an error body, so fail on the status at once: a proxy
+      // can send 502 headers and then stall the body until the request timeout.
+      if (!response.ok && !this.debug) {
+        response.body?.cancel().catch(() => {});
+        throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
+      }
       try {
         data = await response.json() as typeof data;
       } catch (parseError) {

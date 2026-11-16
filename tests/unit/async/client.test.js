@@ -602,19 +602,23 @@ describe('CaptchaClient error edge cases (async)', () => {
     });
   });
 
-  test('throws NetworkError on a non-2xx HTTP status after reading the error body', async () => {
-    const json = jest.fn();
+  test('throws NetworkError on a non-2xx HTTP status without waiting for the body', async () => {
+    // A body that never arrives: without debug the error must not wait for it.
+    const json = jest.fn(() => new Promise(() => {}));
+    const cancel = jest.fn(() => Promise.resolve());
     global.fetch = jest.fn(() => Promise.resolve({
       ok: false,
       status: 502,
       statusText: 'Bad Gateway',
+      body: { cancel },
       json
     }));
 
     const error = await client.createTask(task()).catch((e) => e);
     expect(error).toBeInstanceOf(NetworkError);
     expect(error.message).toBe('HTTP error: 502 Bad Gateway');
-    expect(json).toHaveBeenCalledTimes(1);
+    expect(json).not.toHaveBeenCalled();
+    expect(cancel).toHaveBeenCalledTimes(1);
   });
 
   test('throws NetworkError when the response body is not valid JSON', async () => {
