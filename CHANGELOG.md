@@ -15,10 +15,6 @@ All notable changes are documented here.
 - show request duration in debug RESPONSE
 - always pair debug REQUEST with a RESPONSE line
 - compact timestamped debug output
-- improve concise debug readability
-- format debug output as Linux-style lines
-- add concise and trace debug modes
-- harden structured debug logging
 - label server exchanges as JSON blocks
 - show readable solve duration
 - add final solve debug summary
@@ -41,14 +37,12 @@ All notable changes are documented here.
 - align debug guide with runnable example
 - add debug mode example, disable debug in Kaleidoscope example
 - align README with current SDK
-- enable debug directly in Kaleidoscope example
 - print Kaleidoscope result as JSON
 - explain example execution flows
 - make Kaleidoscope example ready to run
 - add Kaleidoscope example asset
 - drop npm publishing from missing pipeline features
 - document integration tests running on pull requests
-- update changelog for v1.1.0
 
 ### Maintenance
 
