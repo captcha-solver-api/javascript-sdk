@@ -23,8 +23,20 @@ def main() -> None:
     previous = next((tag for tag in tags if tag != args.tag), None)
     revision = f"{previous}..{args.tag}" if previous else args.tag
     subjects = git("log", revision, "--format=%s").splitlines()
+    # A commit reverted within the same release never shipped: drop it together with its revert.
+    reverted: dict[str, int] = {}
+    for subject in subjects:
+        revert = re.fullmatch(r'Revert "(.+)"', subject)
+        if revert:
+            reverted[revert.group(1)] = reverted.get(revert.group(1), 0) + 1
     grouped: dict[str, list[str]] = {}
     for subject in subjects:
+        if reverted.get(subject):
+            reverted[subject] -= 1
+            continue
+        # The changelog commit of the previous release, made by the changelog job itself.
+        if re.fullmatch(r"docs: update changelog for v\S+", subject):
+            continue
         match = re.match(r"([a-z]+)(?:\([^)]*\))?(!)?:\s*(.+)", subject)
         if not match:
             continue
