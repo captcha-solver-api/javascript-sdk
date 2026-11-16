@@ -472,6 +472,30 @@ describe('CaptchaClient (async)', () => {
     await expect(client.solve(task)).rejects.toThrow(TimeoutError);
   });
 
+  test('does not count createTask time against the polling timeout', async () => {
+    client.timeout = 100;
+    client.pollingInterval = 20;
+
+    global.fetch = jest.fn()
+      // createTask takes longer than the whole timeout, but still within the HTTP abort
+      // budget because the mock ignores the abort signal.
+      .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve({
+        ok: true,
+        json: () => Promise.resolve({ errorId: 0, taskId: 12345 })
+      }), 150)))
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ errorId: 0, status: 'ready', solution: { gRecaptchaResponse: 'token' } })
+      }));
+
+    const task = new Tasks.RecaptchaV2Proxyless({
+      websiteURL: 'https://example.com',
+      websiteKey: 'test_key'
+    });
+
+    await expect(client.solve(task)).resolves.toEqual({ gRecaptchaResponse: 'token' });
+  });
+
   test('throws ApiError when a task fails during polling', async () => {
     global.fetch = jest.fn()
       .mockImplementationOnce(() =>
