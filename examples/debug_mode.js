@@ -7,7 +7,8 @@ import { CaptchaClient, Tasks } from '@captcha-solver-api/javascript-sdk';
  * It enables `debug: true`, solves a text CAPTCHA from a bundled image with
  * CaptchaClient.solve(), and prints the recognized text. The `[CaptchaClient] ...`
  * lines are the SDK's debug log; the last line is printed by this example.
- * Credentials in the log are shown as [MASKED], so the output is safe to share.
+ * The API key, passwords, cookies and proxy credentials are shown as [MASKED]. Review the
+ * log before sharing it: URLs and other task fields may still contain application data.
  *
  * How it works:
  * STEP-01 - Configure the SDK client with debug logging enabled.

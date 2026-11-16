@@ -214,6 +214,12 @@ export class CaptchaClient {
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, { method: 'POST', headers, body: JSON.stringify(payload), signal: controller.signal });
       httpStatus = `${response.status} ${response.statusText ?? ''}`.trim();
+      // Without debug nobody looks at an error body, so fail on the status at once: a proxy
+      // can send 502 headers and then stall the body until the request timeout.
+      if (!response.ok && !this.debug) {
+        response.body?.cancel().catch(() => {});
+        throw new NetworkError(`HTTP error: ${response.status} ${response.statusText}`);
+      }
       try {
         data = await response.json() as typeof data;
       } catch (parseError) {
@@ -366,10 +372,13 @@ export class CaptchaClient {
     let polls = 0;
     try {
       taskId = await this.createTask(task, languagePool);
+      // The polling budget starts once the task exists, as in 1.x: a slow createTask must not
+      // eat into it. startedAt still measures the whole solve() for the debug summary.
+      const pollingStartedAt = Date.now();
       while (true) {
-        const remaining = this.timeout - (Date.now() - startedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
+        const remaining = this.timeout - (Date.now() - pollingStartedAt); if (remaining <= 0) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
         await new Promise(resolve => setTimeout(resolve, Math.min(this.pollingInterval, remaining)));
-        if (Date.now() - startedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
+        if (Date.now() - pollingStartedAt >= this.timeout) throw new TimeoutError(`Task ${taskId} timed out after ${this.timeout}ms`);
         polls += 1;
         const result = await this.getTaskResult(taskId);
         if (result.status === 'ready') {
