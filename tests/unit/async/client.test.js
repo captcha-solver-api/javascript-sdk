@@ -36,7 +36,7 @@ describe('CaptchaClient (async)', () => {
     });
 
     await client.getBalance();
-    expect(requestOptions.headers['X-SDK']).toBe('javascript-sdk/1.1.0');
+    expect(requestOptions.headers['X-SDK']).toBe('javascript-sdk/2.0.0');
   });
 
   describe('debug mode', () => {
@@ -89,7 +89,7 @@ describe('CaptchaClient (async)', () => {
       expect(logs().length).toBeGreaterThan(0);
       for (const message of logs()) expect(message).toMatch(TIMESTAMP);
       for (const call of debug.mock.calls) expect(call).toHaveLength(1);
-      expect(lineOf('client initialized')).toContain('sdk=javascript-sdk/1.1.0 baseUrl=https://api.captcha-solver.com timeout=120000ms pollingInterval=5000ms');
+      expect(lineOf('client initialized')).toContain('sdk=javascript-sdk/2.0.0 baseUrl=https://api.captcha-solver.com timeout=120000ms pollingInterval=5000ms');
       expect(lineOf('getBalance')).toMatch(/getBalance -> balance=1\.00 \(\d+ms\)$/);
       expect(sectionsOf('getBalance')).toEqual({
         'REQUEST (POST https://api.captcha-solver.com/getBalance)': { clientKey: '[MASKED]' },
