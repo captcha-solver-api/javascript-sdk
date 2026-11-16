@@ -815,7 +815,7 @@ covers live in [examples/README.md](examples/README.md).
 
 ## Requirements
 
-- Node.js 18 or newer. The repository examples also rely on Node.js APIs and `dotenv`.
+- Node.js 22 or newer. The repository examples also rely on Node.js APIs and `dotenv`.
 - Captcha Solver account with a valid API key.
 
 ## API Documentation

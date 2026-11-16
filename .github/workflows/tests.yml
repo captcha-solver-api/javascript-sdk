@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Matches engines.node: ">=18" in package.json
-        node-version: [18, 20, 22, 24, 26]
+        # Matches engines.node: ">=22" in package.json
+        node-version: [22, 24, 26]
 
     steps:
       - uses: actions/checkout@v7
@@ -42,7 +42,7 @@ jobs:
       # merging an otherwise working PR. A stale badge is noticeable on its
       # own anyway.
       - name: Upload coverage to Coveralls
-        if: matrix.node-version == 20
+        if: matrix.node-version == 24
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -62,7 +62,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - run: npm ci

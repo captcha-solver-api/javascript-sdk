@@ -263,7 +263,7 @@ npm install
 
 ### Requirements
 
-Node.js 18+ (see `engines` in `package.json`): the SDK relies on the global `fetch`.
+Node.js 22+ (see `engines` in `package.json`): the SDK relies on the global `fetch`.
 
 The `--experimental-vm-modules` flag is mandatory — the SDK is pure ESM (`"type": "module"`), and without it Jest cannot load the modules. The npm scripts already pass it; you only need it yourself when invoking Jest directly. The `ExperimentalWarning: VM Modules` line in the output is expected and not an error.
 
@@ -417,7 +417,7 @@ The configuration is [.github/workflows/tests.yml](../.github/workflows/tests.ym
 
 ### Why the jobs are split
 
-- **Unit tests are the mandatory blocking step.** Deterministic, no network, no secrets, a couple of seconds. Safe on any PR, forks included. They run on a Node `18 / 20 / 22 / 24 / 26` matrix, matching `engines.node: ">=18"`.
+- **Unit tests are the mandatory blocking step.** Deterministic, no network, no secrets, a couple of seconds. Safe on any PR, forks included. They run on a Node `22 / 24 / 26` matrix, matching `engines.node: ">=22"`.
 - **Integration tests also run on pull requests**, so a change that breaks the real API flow is caught before merge. The cost is real account balance on every run and a dependency on the external API being up. Secrets are unavailable in a PR from a fork, so there the job **fails** at the fail-early step (see below) instead of skipping the tests and producing a false green.
 
 ### What the nightly run actually checks
@@ -435,7 +435,7 @@ The remaining target-driven solve tests are not planned for CI yet. When they ar
 
 ### Two details that are easy to miss
 
-**Coverage is uploaded from one Node version only** (`if: matrix.node-version == 20`). The figure does not depend on the Node version, and three parallel uploads of the same report would only clutter the history in Coveralls.
+**Coverage is uploaded from one Node version only** (`if: matrix.node-version == 24`). The figure does not depend on the Node version, and three parallel uploads of the same report would only clutter the history in Coveralls.
 
 **The `integration` job fails loudly when the secret did not come through.** There is a fail-early step before the tests:
 
